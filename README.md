@@ -8,3 +8,9 @@ Reusable golang packages
 ```shell
 go get -u github.com/ezex-io/gopkg/middleware/http-mdl
 ```
+
+- [errors](errors)
+
+```shell
+go get -u github.com/ezex-io/gopkg/errors
+```
