@@ -1,3 +1,6 @@
 go 1.24.0
 
-use ./middleware/http-mdl
+use (
+	./errors
+	./middleware/http-mdl
+)
