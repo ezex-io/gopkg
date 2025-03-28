@@ -11,12 +11,14 @@ type Slog struct {
 }
 type SlogHandler func() *slog.Logger
 
+var DefaultSlog = NewSlog(nil)
+
 // NewSlog creates a new Slog logger using functional options.
 func NewSlog(handler SlogHandler) Logger {
 	if handler == nil {
 		handler = WithTextHandler(os.Stdout, slog.LevelInfo)
 	}
-	
+
 	return &Slog{
 		log: handler(),
 	}
