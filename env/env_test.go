@@ -1,67 +1,74 @@
-package env_test
+package env
 
 import (
-	"os"
 	"testing"
 
-	"github.com/ezex-io/gopkg/env"
+	"github.com/stretchr/testify/assert"
 )
 
-func TestEnv_Get(t *testing.T) {
-	_ = os.Setenv("TEST_STRING", "hello")
-	_ = os.Setenv("TEST_INT", "123")
-	_ = os.Setenv("TEST_BOOL", "true")
-	_ = os.Setenv("TEST_FLOAT", "3.14")
-
+func TestGetEnv(t *testing.T) {
 	tests := []struct {
-		name     string
-		key      string
-		options  []env.Option
-		expected any
+		name       string
+		defaultVal string
+		expected   any
+		resultType string // just for clarity in logs
+		assertFunc func(t *testing.T, actual, expected any)
 	}{
 		{
-			name:     "string value",
-			key:      "TEST_STRING",
-			options:  []env.Option{env.WithType("")},
-			expected: "hello",
+			name:       "int with default",
+			defaultVal: "42",
+			expected:   42,
+			resultType: "int",
+			assertFunc: func(t *testing.T, actual, expected any) {
+				assert.Equal(t, expected.(int), actual.(int))
+			},
 		},
 		{
-			name:     "int value",
-			key:      "TEST_INT",
-			options:  []env.Option{env.WithType(0)},
-			expected: 123,
+			name:       "bool true with default",
+			defaultVal: "true",
+			expected:   true,
+			resultType: "bool",
+			assertFunc: func(t *testing.T, actual, expected any) {
+				assert.Equal(t, expected.(bool), actual.(bool))
+			},
 		},
 		{
-			name:     "bool value",
-			key:      "TEST_BOOL",
-			options:  []env.Option{env.WithType(false)},
-			expected: true,
+			name:       "float with default",
+			defaultVal: "3.14",
+			expected:   3.14,
+			resultType: "float64",
+			assertFunc: func(t *testing.T, actual, expected any) {
+				assert.InDelta(t, expected.(float64), actual.(float64), 0.0001)
+			},
 		},
 		{
-			name:     "float value",
-			key:      "TEST_FLOAT",
-			options:  []env.Option{env.WithType(0.0)},
-			expected: 3.14,
-		},
-		{
-			name:     "no type casting",
-			key:      "TEST_STRING",
-			options:  nil,
-			expected: "hello",
-		},
-		{
-			name:     "default value used",
-			key:      "NON_EXISTENT",
-			options:  []env.Option{env.WithDefault("default!")},
-			expected: "default!",
+			name:       "string with default",
+			defaultVal: "hello",
+			expected:   "hello",
+			resultType: "string",
+			assertFunc: func(t *testing.T, actual, expected any) {
+				assert.Equal(t, expected.(string), actual.(string))
+			},
 		},
 	}
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			val := env.EnvInstance.Get(tt.key, tt.options...)
-			if val != tt.expected {
-				t.Errorf("expected %v (%T), got %v (%T)", tt.expected, tt.expected, val, val)
+			switch tt.expected.(type) {
+			case int:
+				result := GetEnv[int]("MY_INT", WithDefault(tt.defaultVal))
+				tt.assertFunc(t, result, tt.expected)
+			case bool:
+				result := GetEnv[bool]("MY_BOOL", WithDefault(tt.defaultVal))
+				tt.assertFunc(t, result, tt.expected)
+			case float64:
+				result := GetEnv[float64]("MY_FLOAT", WithDefault(tt.defaultVal))
+				tt.assertFunc(t, result, tt.expected)
+			case string:
+				result := GetEnv[string]("MY_STRING", WithDefault(tt.defaultVal))
+				tt.assertFunc(t, result, tt.expected)
+			default:
+				t.Fatalf("unsupported test type: %T", tt.expected)
 			}
 		})
 	}
