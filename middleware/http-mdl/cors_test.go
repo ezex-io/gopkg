@@ -15,7 +15,7 @@ func TestCORSMiddleware(t *testing.T) {
 
 	middleware := CORS(config)
 
-	handler := middleware(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+	handler := middleware(http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
 		w.WriteHeader(http.StatusOK)
 	}))
 
@@ -24,7 +24,7 @@ func TestCORSMiddleware(t *testing.T) {
 
 	handler.ServeHTTP(w, req)
 	res := w.Result()
-	defer res.Body.Close()
+	defer res.Body.Close() //nolint:errcheck
 
 	assert.Equal(t, http.StatusOK, res.StatusCode)
 	assert.Equal(t, "https://example.com", res.Header.Get("Access-Control-Allow-Origin"))
@@ -37,7 +37,7 @@ func TestCORSMiddlewareOptionsRequest(t *testing.T) {
 	config := DefaultCORSConfig()
 	middleware := CORS(config)
 
-	handler := middleware(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+	handler := middleware(http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
 		w.WriteHeader(http.StatusOK)
 	}))
 
@@ -46,7 +46,7 @@ func TestCORSMiddlewareOptionsRequest(t *testing.T) {
 
 	handler.ServeHTTP(w, req)
 	res := w.Result()
-	defer res.Body.Close()
+	defer res.Body.Close() //nolint:errcheck
 
 	assert.Equal(t, http.StatusNoContent, res.StatusCode)
 	assert.Equal(t, "*", res.Header.Get("Access-Control-Allow-Origin"))
