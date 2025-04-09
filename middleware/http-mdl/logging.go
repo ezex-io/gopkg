@@ -6,7 +6,7 @@ import (
 	"time"
 )
 
-// Logging logs incoming HTTP requests and their duration
+// Logging logs incoming HTTP requests and their duration.
 func Logging() Middleware {
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {

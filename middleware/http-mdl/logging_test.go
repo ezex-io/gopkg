@@ -18,7 +18,7 @@ func TestLoggingMiddleware(t *testing.T) {
 
 	middleware := Logging()
 
-	handler := middleware(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+	handler := middleware(http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
 		w.WriteHeader(http.StatusOK)
 	}))
 

@@ -29,4 +29,5 @@ jobs:
         run: |
           cd ./errors && golangci-lint run --config ../.golangci.yml
           cd ./logger && golangci-lint run --config ../.golangci.yml
+          cd ./env && golangci-lint run --config ../.golangci.yml
           cd ./middleware/http-mdl && golangci-lint run  --config ./../../.golangci.yml

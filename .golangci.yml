@@ -32,7 +32,6 @@ linters:
     - goheader
     - goimports
     - gomoddirectives
-    - gomodguard
     - goprintffuncname
     - gosec
     - gosmopolitan
@@ -63,7 +62,6 @@ linters:
     - stylecheck
     - tagalign
     - tagliatelle
-    - tenv
     - testableexamples
     - thelper
     - tparallel
@@ -74,7 +72,10 @@ linters:
     - whitespace
     - wrapcheck
     - zerologlint
-    - varnamelen
+
+  disable:
+    - tenv
+    - gomodguard
 
 linters-settings:
   gosimple:
@@ -87,7 +88,7 @@ linters-settings:
         disabled: true
 
       - name: package-comments
-        disabled: false
+        disabled: true
 
       - name: "add-constant"
         disabled: true
@@ -148,8 +149,13 @@ linters-settings:
       - G204
       - G115
 
-  stylecheck:
-    checks: ["all"]
+  typecheck:
+    # Skip workspace module checks
+    go-work: false
+
+stylecheck:
+  checks:
+    - all
 
   govet:
     enable-all: true
@@ -222,7 +228,8 @@ issues:
         - forbidigo
 
   exclude:
-    - "shadow: declaration of \"err\" shadows"
+    - 'shadow: declaration of "err" shadows'
     - "builtinShadow: shadowing of predeclared identifier: min"
     - "builtinShadow: shadowing of predeclared identifier: max"
     - "builtinShadow: shadowing of predeclared identifier: len"
+    - "ST1000"

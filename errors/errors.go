@@ -14,7 +14,6 @@ type Error struct {
 //
 //	err := errors.New(404, "User not found", "email", "foo@example.com")
 func New(code int, message string) *Error {
-
 	return &Error{
 		Code:    code,
 		Message: message,
@@ -22,7 +21,7 @@ func New(code int, message string) *Error {
 	}
 }
 
-// AddMeta add metadata to error message
+// AddMeta add metadata to error message.
 func (e *Error) AddMeta(keyVal ...string) *Error {
 	if len(keyVal)%2 != 0 {
 		e.Meta["error"] = "invalid meta key/value args"

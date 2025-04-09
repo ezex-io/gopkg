@@ -12,7 +12,7 @@ type CORSConfig struct {
 	AllowCredentials bool
 }
 
-// DefaultCORSConfig returns a default CORS configuration
+// DefaultCORSConfig returns a default CORS configuration.
 func DefaultCORSConfig() CORSConfig {
 	return CORSConfig{
 		AllowedOrigins:   []string{"*"},
@@ -22,7 +22,7 @@ func DefaultCORSConfig() CORSConfig {
 	}
 }
 
-// CORS creates middleware to handle CORS requests
+// CORS creates middleware to handle CORS requests.
 func CORS(config CORSConfig) Middleware {
 	return func(next http.Handler) http.Handler {
 		originHeader := strings.Join(config.AllowedOrigins, ", ")
@@ -40,6 +40,7 @@ func CORS(config CORSConfig) Middleware {
 
 			if r.Method == http.MethodOptions {
 				w.WriteHeader(http.StatusNoContent)
+
 				return
 			}
 

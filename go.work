@@ -1,6 +1,7 @@
 go 1.24.1
 
 use (
+	./env
 	./errors
 	./logger
 	./middleware/http-mdl

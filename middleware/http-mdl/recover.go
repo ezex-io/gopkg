@@ -7,7 +7,7 @@ import (
 	"strings"
 )
 
-// Recover middleware with structured stack trace logging
+// Recover middleware with structured stack trace logging.
 func Recover() Middleware {
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
@@ -27,7 +27,7 @@ func Recover() Middleware {
 	}
 }
 
-// captureStackTrace formats the stack trace in a structured and readable way
+// captureStackTrace formats the stack trace in a structured and readable way.
 func captureStackTrace(skip int) []map[string]any {
 	var pcs [32]uintptr
 	n := runtime.Callers(skip, pcs[:])

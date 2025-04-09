@@ -9,6 +9,7 @@ import (
 type Slog struct {
 	log *slog.Logger
 }
+
 type SlogHandler func() *slog.Logger
 
 var DefaultSlog = NewSlog(nil)
@@ -24,8 +25,8 @@ func NewSlog(handler SlogHandler) Slogger {
 	}
 }
 
-// WithJsonHandler returns a logger with JSON formatting and custom level.
-func WithJsonHandler(w io.Writer, level slog.Level) SlogHandler {
+// WithJSONHandler returns a logger with JSON formatting and custom level.
+func WithJSONHandler(w io.Writer, level slog.Level) SlogHandler {
 	return func() *slog.Logger {
 		if w == nil {
 			w = os.Stdout
@@ -33,6 +34,7 @@ func WithJsonHandler(w io.Writer, level slog.Level) SlogHandler {
 		handler := slog.NewJSONHandler(w, &slog.HandlerOptions{
 			Level: level,
 		})
+
 		return slog.New(handler)
 	}
 }
@@ -46,6 +48,7 @@ func WithTextHandler(w io.Writer, level slog.Level) SlogHandler {
 		handler := slog.NewTextHandler(w, &slog.HandlerOptions{
 			Level: level,
 		})
+
 		return slog.New(handler)
 	}
 }

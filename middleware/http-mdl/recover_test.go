@@ -11,7 +11,7 @@ import (
 func TestRecoverMiddleware(t *testing.T) {
 	middleware := Recover()
 
-	handler := middleware(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+	handler := middleware(http.HandlerFunc(func(_ http.ResponseWriter, _ *http.Request) {
 		panic("unexpected error")
 	}))
 
@@ -20,7 +20,7 @@ func TestRecoverMiddleware(t *testing.T) {
 
 	handler.ServeHTTP(w, req)
 	res := w.Result()
-	defer res.Body.Close()
+	defer func() { _ = res.Body.Close() }()
 
 	assert.Equal(t, http.StatusInternalServerError, res.StatusCode)
 	assert.Equal(t, "Internal Server Error\n", w.Body.String())
@@ -29,9 +29,9 @@ func TestRecoverMiddleware(t *testing.T) {
 func TestRecoverMiddleware_NoPanic(t *testing.T) {
 	middleware := Recover()
 
-	handler := middleware(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+	handler := middleware(http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
 		w.WriteHeader(http.StatusOK)
-		w.Write([]byte("All Good"))
+		defer func() { _, _ = w.Write([]byte("All Good")) }()
 	}))
 
 	req := httptest.NewRequest(http.MethodGet, "http://test.com", nil)
@@ -39,7 +39,7 @@ func TestRecoverMiddleware_NoPanic(t *testing.T) {
 
 	handler.ServeHTTP(w, req)
 	res := w.Result()
-	defer res.Body.Close()
+	defer func() { _ = res.Body.Close() }()
 
 	assert.Equal(t, http.StatusOK, res.StatusCode)
 	assert.Equal(t, "All Good", w.Body.String())
