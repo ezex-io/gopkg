@@ -1,69 +1,66 @@
-package env
+package env_test
 
 import (
+	"os"
 	"testing"
 
+	"github.com/ezex-io/gopkg/env"
 	"github.com/stretchr/testify/assert"
 )
 
+// TestGetEnv verifies that environment variables are correctly parsed into supported types.
 func TestGetEnv(t *testing.T) {
-	tests := []struct {
-		name       string
-		defaultVal string
-		expected   any
-		wantPanic  bool
-	}{
-		{
-			name:       "int with default",
-			defaultVal: "42",
-			expected:   42,
-		},
-		{
-			name:       "bool true with default",
-			defaultVal: "true",
-			expected:   true,
-		},
-		{
-			name:       "float with default",
-			defaultVal: "3.14",
-			expected:   3.14,
-		},
-		{
-			name:       "string with default",
-			defaultVal: "hello",
-			expected:   "hello",
-		},
-		{
-			name:      "unsupported type panics",
-			expected:  struct{}{},
-			wantPanic: true,
-		},
-	}
+	os.Setenv("MY_INT", "1")
+	os.Setenv("MY_BOOL", "true")
+	os.Setenv("MY_FLOAT", "3.14")
+	os.Setenv("MY_STRING", "str")
 
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			if tt.wantPanic {
-				assert.PanicsWithValue(t,
-					"unsupported type: struct {}",
-					func() { GetEnv[struct{}]("UNSUPPORTED") },
-					"should panic for unsupported types")
-				return
-			}
+	assert.Equal(t, 1, env.GetEnv[int]("MY_INT"))
+	assert.Equal(t, true, env.GetEnv[bool]("MY_BOOL"))
+	assert.Equal(t, 3.14, env.GetEnv[float64]("MY_FLOAT"))
+	assert.Equal(t, "str", env.GetEnv[string]("MY_STRING"))
+}
 
-			switch expected := tt.expected.(type) {
-			case int:
-				result := GetEnv[int]("MY_INT", WithDefault(tt.defaultVal))
-				assert.Equal(t, expected, result)
-			case bool:
-				result := GetEnv[bool]("MY_BOOL", WithDefault(tt.defaultVal))
-				assert.Equal(t, expected, result)
-			case float64:
-				result := GetEnv[float64]("MY_FLOAT", WithDefault(tt.defaultVal))
-				assert.InDelta(t, expected, result, 0.0001)
-			case string:
-				result := GetEnv[string]("MY_STRING", WithDefault(tt.defaultVal))
-				assert.Equal(t, expected, result)
-			}
-		})
-	}
+// TestGetEnvWithDefault verifies that default values are used when environment variables are not set.
+func TestGetEnvWithDefault(t *testing.T) {
+	assert.Equal(t, 1, env.GetEnv[int]("MY_INT", env.WithDefault("1")))
+	assert.Equal(t, false, env.GetEnv[bool]("MY_BOOL", env.WithDefault("false")))
+	assert.Equal(t, true, env.GetEnv[bool]("MY_BOOL", env.WithDefault("true")))
+	assert.Equal(t, false, env.GetEnv[bool]("MY_BOOL", env.WithDefault("0")))
+	assert.Equal(t, true, env.GetEnv[bool]("MY_BOOL", env.WithDefault("1")))
+	assert.Equal(t, 3.14, env.GetEnv[float64]("MY_FLOAT", env.WithDefault("3.14")))
+	assert.Equal(t, "str", env.GetEnv[string]("MY_STRING", env.WithDefault("str")))
+}
+
+// TestGetEnvNotSet ensures that calling GetEnv without a default on an unset variable panics.
+func TestGetEnvNotSet(t *testing.T) {
+	assert.Panics(t, func() {
+		assert.Equal(t, 1, env.GetEnv[int]("MY_INT"))
+	})
+	assert.Panics(t, func() {
+		assert.Equal(t, true, env.GetEnv[bool]("MY_BOOL"))
+	})
+	assert.Panics(t, func() {
+		assert.Equal(t, 3.14, env.GetEnv[float64]("MY_FLOAT"))
+	})
+}
+
+// TestGetEnvWrongType checks that GetEnv panics when default values cannot be parsed into the desired type.
+func TestGetEnvWrongType(t *testing.T) {
+	assert.Panics(t, func() {
+		assert.Equal(t, 1, env.GetEnv[int]("MY_INT", env.WithDefault("one")))
+	})
+	assert.Panics(t, func() {
+		assert.Equal(t, true, env.GetEnv[bool]("MY_BOOL", env.WithDefault("ok")))
+	})
+	assert.Panics(t, func() {
+		assert.Equal(t, 3.14, env.GetEnv[float64]("MY_FLOAT", env.WithDefault("pi")))
+	})
+}
+
+// TestGetEnvUnsupported ensures that GetEnv panics when an unsupported type is requested.
+func TestGetEnvUnsupported(t *testing.T) {
+	assert.Panics(t, func() {
+		assert.Equal(t, 1, env.GetEnv[[]int]("MY_INT_ARRAY", env.WithDefault("[1]")))
+	})
 }

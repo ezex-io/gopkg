@@ -2,11 +2,14 @@ package env
 
 import (
 	"fmt"
+	"os"
 	"strconv"
 )
 
+// Option defines a function type that modifies a string value, typically used for environment variable customization.
 type Option func(value *string)
 
+// WithDefault returns an Option that sets a default value if the environment variable is empty.
 func WithDefault(defVal string) Option {
 	return func(val *string) {
 		if *val == "" {
@@ -15,8 +18,11 @@ func WithDefault(defVal string) Option {
 	}
 }
 
+// GetEnv retrieves an environment variable by key, applies optional modifications, and converts it to the desired type T.
+// Supports types: int, bool, float64, and string.
+// Panics if conversion fails or if the type is unsupported.
 func GetEnv[T any](key string, options ...Option) T {
-	var val string
+	val := os.Getenv(key)
 	for _, opt := range options {
 		opt(&val)
 	}
