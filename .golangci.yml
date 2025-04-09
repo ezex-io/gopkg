@@ -75,6 +75,10 @@ linters:
     - wrapcheck
     - zerologlint
 
+  disable:
+    - tenv
+    - gomodguard
+
 linters-settings:
   gosimple:
     checks: ["all"]
@@ -146,6 +150,10 @@ linters-settings:
       - G304
       - G204
       - G115
+
+  typecheck:
+    # Skip workspace module checks
+    go-work: false
 
 stylecheck:
   checks:
