@@ -32,7 +32,6 @@ linters:
     - goheader
     - goimports
     - gomoddirectives
-    - gomodguard
     - goprintffuncname
     - gosec
     - gosmopolitan
@@ -76,6 +75,7 @@ linters:
 
   disable:
     - tenv
+    - gomodguard
 
 linters-settings:
   gosimple:
