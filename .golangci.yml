@@ -76,7 +76,6 @@ linters:
 
   disable:
     - tenv
-    - gomodguard
 
 linters-settings:
   gosimple:
