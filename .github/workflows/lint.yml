@@ -12,22 +12,16 @@ on:
 jobs:
   linting:
     runs-on: ubuntu-latest
-
     steps:
-      - name: Install Go
-        uses: actions/setup-go@v5
+      - uses: actions/checkout@v4
+        with:
+          submodules: recursive
+
+      - uses: actions/setup-go@v5
         with:
           go-version: "stable"
 
-      - name: Checkout code
-        uses: actions/checkout@v4
+      - run: go install github.com/golangci/golangci-lint/cmd/golangci-lint@latest
 
-      - name: Installing golangci-lint
-        run: go install github.com/golangci/golangci-lint/cmd/golangci-lint@latest
-
-      - name: Formatting and linting the project
-        run: |
-          cd ./errors && golangci-lint run --config ../.golangci.yml
-          cd ./env && golangci-lint run --config ../.golangci.yml
-          cd ./logger && golangci-lint run --config ../.golangci.yml
-          cd ./middleware/http-mdl && golangci-lint run  --config ./../../.golangci.yml
+      - name: Run golangci-lint
+        run: golangci-lint run --config ./.golangci.yml ./...
