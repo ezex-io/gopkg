@@ -18,7 +18,8 @@ func WithDefault(defVal string) Option {
 	}
 }
 
-// GetEnv retrieves an environment variable by key, applies optional modifications, and converts it to the desired type T.
+// GetEnv retrieves an environment variable by key,
+// applies optional modifications, and converts it to the desired type T.
 // Supports types: int, bool, float64, and string.
 // Panics if conversion fails or if the type is unsupported.
 func GetEnv[T any](key string, options ...Option) T {
@@ -34,18 +35,21 @@ func GetEnv[T any](key string, options ...Option) T {
 		if err != nil {
 			panic(err)
 		}
+
 		return any(v).(T)
 	case bool:
 		v, err := strconv.ParseBool(val)
 		if err != nil {
 			panic(err)
 		}
+
 		return any(v).(T)
 	case float64:
 		v, err := strconv.ParseFloat(val, 64)
 		if err != nil {
 			panic(err)
 		}
+
 		return any(v).(T)
 	case string:
 		return any(val).(T)

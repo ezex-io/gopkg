@@ -1,7 +1,6 @@
 package env_test
 
 import (
-	"os"
 	"testing"
 
 	"github.com/ezex-io/gopkg/env"
@@ -10,10 +9,10 @@ import (
 
 // TestGetEnv verifies that environment variables are correctly parsed into supported types.
 func TestGetEnv(t *testing.T) {
-	os.Setenv("MY_INT", "1")
-	os.Setenv("MY_BOOL", "true")
-	os.Setenv("MY_FLOAT", "3.14")
-	os.Setenv("MY_STRING", "str")
+	t.Setenv("MY_INT", "1")
+	t.Setenv("MY_BOOL", "true")
+	t.Setenv("MY_FLOAT", "3.14")
+	t.Setenv("MY_STRING", "str")
 
 	assert.Equal(t, 1, env.GetEnv[int]("MY_INT"))
 	assert.Equal(t, true, env.GetEnv[bool]("MY_BOOL"))
