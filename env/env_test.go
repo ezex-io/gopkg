@@ -1,6 +1,8 @@
 package env_test
 
 import (
+	"os"
+	"path/filepath"
 	"testing"
 
 	"github.com/ezex-io/gopkg/env"
@@ -61,5 +63,34 @@ func TestGetEnvWrongType(t *testing.T) {
 func TestGetEnvUnsupported(t *testing.T) {
 	assert.Panics(t, func() {
 		assert.Equal(t, 1, env.GetEnv[[]int]("MY_INT_ARRAY", env.WithDefault("[1]")))
+	})
+}
+
+func TestLoadEnvsFromFileSuccess(t *testing.T) {
+	tempDir := t.TempDir()
+	envPath := filepath.Join(tempDir, ".env")
+
+	err := os.WriteFile(envPath, []byte("FOO=bar"), 0o600)
+	if err != nil {
+		t.Fatalf("Failed to create test .env file: %v", err)
+	}
+
+	env.LoadEnvsFromFile(envPath)
+
+	assert.Equal(t, "bar", os.Getenv("FOO"))
+}
+
+func TestLoadEnvsFromFileFileNotFound(t *testing.T) {
+	tempDir := t.TempDir()
+	envPath := filepath.Join(tempDir, "file-not-exists.env")
+
+	assert.Panics(t, func() {
+		env.LoadEnvsFromFile(envPath)
+	})
+}
+
+func TestLoadEnvsFromFileEmptyPath(t *testing.T) {
+	assert.NotPanics(t, func() {
+		env.LoadEnvsFromFile("")
 	})
 }

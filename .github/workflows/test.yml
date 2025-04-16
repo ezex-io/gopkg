@@ -27,3 +27,4 @@ jobs:
           go test ./errors
           go test ./logger
           go test ./middleware/http-mdl
+          go test ./env
