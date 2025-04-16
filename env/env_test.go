@@ -66,63 +66,31 @@ func TestGetEnvUnsupported(t *testing.T) {
 	})
 }
 
-func TestLoadEnvsFromFile(t *testing.T) {
+func TestLoadEnvsFromFileSuccess(t *testing.T) {
 	tempDir := t.TempDir()
+	envPath := filepath.Join(tempDir, ".env")
 
-	tests := []struct {
-		name        string
-		envContent  string
-		envFileName string
-		wantErr     bool
-		setup       func() string
-		cleanup     func()
-	}{
-		{
-			name:        "successful load",
-			envContent:  "TEST_KEY=test_value\nANOTHER_KEY=123",
-			envFileName: ".env",
-			wantErr:     false,
-			setup: func() string {
-				envPath := filepath.Join(tempDir, ".env")
-				if err := os.WriteFile(envPath, []byte("TEST_KEY=test_value\nANOTHER_KEY=123"), 0o600); err != nil {
-					t.Fatalf("Failed to create test .env file: %v", err)
-				}
-
-				return envPath
-			},
-			cleanup: func() {},
-		},
-		{
-			name:        "file not found",
-			envFileName: "nonexistent.env",
-			wantErr:     true,
-			setup: func() string {
-				return filepath.Join(tempDir, "nonexistent.env")
-			},
-			cleanup: func() {},
-		},
+	err := os.WriteFile(envPath, []byte("FOO=bar"), 0o600)
+	if err != nil {
+		t.Fatalf("Failed to create test .env file: %v", err)
 	}
 
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			envPath := tt.setup()
-			defer tt.cleanup()
+	env.LoadEnvsFromFile(envPath)
 
-			err := env.LoadEnvsFromFile(envPath)
-			if (err != nil) != tt.wantErr {
-				t.Errorf("LoadEnvsFromFile() error = %v, wantErr %v", err, tt.wantErr)
+	assert.Equal(t, "bar", os.Getenv("FOO"))
+}
 
-				return
-			}
+func TestLoadEnvsFromFileFileNotFound(t *testing.T) {
+	tempDir := t.TempDir()
+	envPath := filepath.Join(tempDir, "file-not-exists.env")
 
-			if !tt.wantErr {
-				if val := os.Getenv("TEST_KEY"); val != "test_value" {
-					t.Errorf("TEST_KEY = %v, want test_value", val)
-				}
-				if val := os.Getenv("ANOTHER_KEY"); val != "123" {
-					t.Errorf("ANOTHER_KEY = %v, want 123", val)
-				}
-			}
-		})
-	}
+	assert.Panics(t, func() {
+		env.LoadEnvsFromFile(envPath)
+	})
+}
+
+func TestLoadEnvsFromFileEmptyPath(t *testing.T) {
+	assert.NotPanics(t, func() {
+		env.LoadEnvsFromFile("")
+	})
 }

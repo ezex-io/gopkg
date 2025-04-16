@@ -60,10 +60,13 @@ func GetEnv[T any](key string, options ...Option) T {
 	}
 }
 
-func LoadEnvsFromFile(envFile string) error {
-	if err := godotenv.Load(envFile); err != nil {
-		return fmt.Errorf("failed to load environment variables from file %s: %w", envFile, err)
+// LoadEnvsFromFile loads environment variables from a file and panics if there are any errors.
+func LoadEnvsFromFile(envFile string) {
+	if envFile == "" {
+		return
 	}
 
-	return nil
+	if err := godotenv.Load(envFile); err != nil {
+		panic(fmt.Sprintf("failed to load environment variables from file %s: %v", envFile, err))
+	}
 }
