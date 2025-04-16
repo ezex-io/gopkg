@@ -4,6 +4,8 @@ import (
 	"fmt"
 	"os"
 	"strconv"
+
+	"github.com/joho/godotenv"
 )
 
 // Option defines a function type that modifies a string value, typically used for environment variable customization.
@@ -56,4 +58,12 @@ func GetEnv[T any](key string, options ...Option) T {
 	default:
 		panic(fmt.Sprintf("unsupported type: %T", result))
 	}
+}
+
+func LoadEnvsFromFile(envFile string) error {
+	if err := godotenv.Load(envFile); err != nil {
+		return fmt.Errorf("failed to load environment variables from file %s: %w", envFile, err)
+	}
+
+	return nil
 }
