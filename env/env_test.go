@@ -75,8 +75,9 @@ func TestLoadEnvsFromFileSuccess(t *testing.T) {
 		t.Fatalf("Failed to create test .env file: %v", err)
 	}
 
-	env.LoadEnvsFromFile(envPath)
+	err = env.LoadEnvsFromFile(envPath)
 
+	assert.NoError(t, err)
 	assert.Equal(t, "bar", os.Getenv("FOO"))
 }
 
@@ -84,13 +85,11 @@ func TestLoadEnvsFromFileFileNotFound(t *testing.T) {
 	tempDir := t.TempDir()
 	envPath := filepath.Join(tempDir, "file-not-exists.env")
 
-	assert.Panics(t, func() {
-		env.LoadEnvsFromFile(envPath)
-	})
+	err := env.LoadEnvsFromFile(envPath)
+	assert.Error(t, err)
 }
 
 func TestLoadEnvsFromFileEmptyPath(t *testing.T) {
-	assert.NotPanics(t, func() {
-		env.LoadEnvsFromFile("")
-	})
+	err := env.LoadEnvsFromFile()
+	assert.Error(t, err)
 }
