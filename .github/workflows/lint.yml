@@ -26,21 +26,4 @@ jobs:
         run: go install github.com/golangci/golangci-lint/cmd/golangci-lint@latest
 
       - name: Formatting and linting the project
-        run: |
-          set -e
-          cd "$GITHUB_WORKSPACE"
-          
-          echo "Linting errors package..."
-          cd errors && golangci-lint run --config ../.golangci.yml
-          cd "$GITHUB_WORKSPACE"
-          
-          echo "Linting logger package..."
-          cd logger && golangci-lint run --config ../.golangci.yml
-          cd "$GITHUB_WORKSPACE"
-          
-          echo "Linting env package..."
-          cd env && golangci-lint run --config ../.golangci.yml
-          cd "$GITHUB_WORKSPACE"
-          
-          echo "Linting middleware package..."
-          cd middleware/http-mdl && golangci-lint run --config ../../.golangci.yml
+        run: make check

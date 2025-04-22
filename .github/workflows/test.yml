@@ -23,8 +23,4 @@ jobs:
         uses: actions/checkout@v4
 
       - name: Run Tests
-        run: |
-          go test ./errors
-          go test ./logger
-          go test ./middleware/http-mdl
-          go test ./env
+        run: make test

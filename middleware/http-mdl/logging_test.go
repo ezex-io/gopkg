@@ -14,7 +14,6 @@ import (
 func TestLoggingMiddleware(t *testing.T) {
 	var logBuffer bytes.Buffer
 	log.SetOutput(&logBuffer)
-	defer log.SetOutput(nil)
 
 	middleware := Logging()
 
@@ -27,7 +26,10 @@ func TestLoggingMiddleware(t *testing.T) {
 	w := httptest.NewRecorder()
 
 	handler.ServeHTTP(w, req)
+	res := w.Result()
+	defer func() { _ = res.Body.Close() }()
 
+	assert.Equal(t, http.StatusOK, res.StatusCode)
 	logged := logBuffer.String()
 	assert.Contains(t, logged, "[GET] /foo 127.0.0.1")
 	assert.True(t, strings.Contains(logged, "ms"))
