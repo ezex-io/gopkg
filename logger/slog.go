@@ -15,7 +15,7 @@ type SlogHandler func() *slog.Logger
 var DefaultSlog = NewSlog(nil)
 
 // NewSlog creates a new Slog logger using functional options.
-func NewSlog(handler SlogHandler) Slogger {
+func NewSlog(handler SlogHandler) *Slog {
 	if handler == nil {
 		handler = WithTextHandler(os.Stdout, slog.LevelInfo)
 	}
@@ -74,7 +74,7 @@ func (s *Slog) Fatal(msg string, args ...any) {
 	os.Exit(1)
 }
 
-func (s *Slog) With(args ...any) Logger {
+func (s *Slog) With(args ...any) *Slog {
 	return &Slog{
 		log: s.log.With(args...),
 	}
