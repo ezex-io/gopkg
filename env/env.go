@@ -31,14 +31,6 @@ func WithDefault(defVal string) Option {
 // GetEnv retrieves an environment variable by key,
 // applies the provided options, and converts it to the desired type T.
 //
-// Supported types:
-//   - int
-//   - bool
-//   - float64
-//   - string
-//   - []string (comma-separated values)
-//   - time.Duration (parseable by time.ParseDuration)
-//
 // Panics if the conversion fails or the type is unsupported.
 //
 //nolint:ireturn // GetEnv returns generic interface
