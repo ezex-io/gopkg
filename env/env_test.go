@@ -74,7 +74,7 @@ func TestGetEnvWrongType(t *testing.T) {
 		assert.Equal(t, 3.14, env.GetEnv[float64]("MY_FLOAT", env.WithDefault("pi")))
 	})
 	assert.Panics(t, func() {
-		assert.Equal(t, 2*time.Second, env.GetEnv[float64]("MY_FLOAT", env.WithDefault("2 seconds")))
+		assert.Equal(t, 2*time.Second, env.GetEnv[float64]("MY_DURATION", env.WithDefault("2 seconds")))
 	})
 }
 
