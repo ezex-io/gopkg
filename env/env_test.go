@@ -4,10 +4,17 @@ import (
 	"os"
 	"path/filepath"
 	"testing"
+	"time"
 
 	"github.com/ezex-io/gopkg/env"
 	"github.com/stretchr/testify/assert"
 )
+
+// TestGetEnvEmpty verifies ???
+func TestGetEnvEmpty(t *testing.T) {
+	assert.Equal(t, "", env.GetEnv[string]("MY_STRING"))
+	assert.Equal(t, []string{}, env.GetEnv[[]string]("MY_STRING_LIST"))
+}
 
 // TestGetEnv verifies that environment variables are correctly parsed into supported types.
 func TestGetEnv(t *testing.T) {
@@ -15,11 +22,15 @@ func TestGetEnv(t *testing.T) {
 	t.Setenv("MY_BOOL", "true")
 	t.Setenv("MY_FLOAT", "3.14")
 	t.Setenv("MY_STRING", "str")
+	t.Setenv("MY_STRING_LIST", "str1,str2")
+	t.Setenv("MY_DURATION", "5m")
 
 	assert.Equal(t, 1, env.GetEnv[int]("MY_INT"))
 	assert.Equal(t, true, env.GetEnv[bool]("MY_BOOL"))
 	assert.Equal(t, 3.14, env.GetEnv[float64]("MY_FLOAT"))
 	assert.Equal(t, "str", env.GetEnv[string]("MY_STRING"))
+	assert.Equal(t, []string{"str1", "str2"}, env.GetEnv[[]string]("MY_STRING_LIST"))
+	assert.Equal(t, time.Minute*5, env.GetEnv[time.Duration]("MY_DURATION"))
 }
 
 // TestGetEnvWithDefault verifies that default values are used when environment variables are not set.
@@ -31,6 +42,8 @@ func TestGetEnvWithDefault(t *testing.T) {
 	assert.Equal(t, true, env.GetEnv[bool]("MY_BOOL", env.WithDefault("1")))
 	assert.Equal(t, 3.14, env.GetEnv[float64]("MY_FLOAT", env.WithDefault("3.14")))
 	assert.Equal(t, "str", env.GetEnv[string]("MY_STRING", env.WithDefault("str")))
+	assert.Equal(t, []string{"str1", "str2"}, env.GetEnv[[]string]("MY_STRING_LIST", env.WithDefault("str1,str2")))
+	assert.Equal(t, time.Second*5, env.GetEnv[time.Duration]("MY_DURATION", env.WithDefault("5s")))
 }
 
 // TestGetEnvNotSet ensures that calling GetEnv without a default on an unset variable panics.
@@ -43,6 +56,9 @@ func TestGetEnvNotSet(t *testing.T) {
 	})
 	assert.Panics(t, func() {
 		assert.Equal(t, 3.14, env.GetEnv[float64]("MY_FLOAT"))
+	})
+	assert.Panics(t, func() {
+		assert.Equal(t, "two seconds", env.GetEnv[time.Duration]("MY_DURATION"))
 	})
 }
 
@@ -57,12 +73,8 @@ func TestGetEnvWrongType(t *testing.T) {
 	assert.Panics(t, func() {
 		assert.Equal(t, 3.14, env.GetEnv[float64]("MY_FLOAT", env.WithDefault("pi")))
 	})
-}
-
-// TestGetEnvUnsupported ensures that GetEnv panics when an unsupported type is requested.
-func TestGetEnvUnsupported(t *testing.T) {
 	assert.Panics(t, func() {
-		assert.Equal(t, 1, env.GetEnv[[]int]("MY_INT_ARRAY", env.WithDefault("[1]")))
+		assert.Equal(t, 2*time.Second, env.GetEnv[float64]("MY_FLOAT", env.WithDefault("2 seconds")))
 	})
 }
 

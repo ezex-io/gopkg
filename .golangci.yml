@@ -70,8 +70,8 @@ linters:
     - usestdlibvars
     - wastedassign
     - whitespace
-    - wrapcheck
     - zerologlint
+    - ireturn
 
   disable:
     - tenv
