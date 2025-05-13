@@ -32,6 +32,7 @@ linters:
     - goheader
     - goimports
     - gomoddirectives
+    - gomodguard
     - goprintffuncname
     - gosec
     - gosmopolitan
@@ -62,6 +63,7 @@ linters:
     - stylecheck
     - tagalign
     - tagliatelle
+    - usetesting
     - testableexamples
     - thelper
     - tparallel
@@ -71,11 +73,8 @@ linters:
     - wastedassign
     - whitespace
     - zerologlint
+    - varnamelen
     - ireturn
-
-  disable:
-    - tenv
-    - gomodguard
 
 linters-settings:
   gosimple:
@@ -149,13 +148,10 @@ linters-settings:
       - G204
       - G115
 
-  typecheck:
-    # Skip workspace module checks
-    go-work: false
-
-stylecheck:
-  checks:
-    - all
+  stylecheck:
+    # ST1000: at least one file in a package should have a package comment
+    # ST1003: should not use underscores in package names
+    checks: ["all", "-ST1000", "-ST1003"]
 
   govet:
     enable-all: true
@@ -180,16 +176,6 @@ stylecheck:
       rules:
         json: snake
         yaml: snake
-
-  gocritic:
-    disabled-checks:
-      - ifElseChain
-      - unnamedResult
-      - importShadow
-    enabled-tags:
-      - diagnostic
-      - style
-      - performance
 
   nestif:
     # Minimal complexity of if statements to report.
@@ -229,7 +215,7 @@ issues:
 
   exclude:
     - 'shadow: declaration of "err" shadows'
-    - "builtinShadow: shadowing of predeclared identifier: min"
-    - "builtinShadow: shadowing of predeclared identifier: max"
-    - "builtinShadow: shadowing of predeclared identifier: len"
-    - "ST1000"
+    - 'builtinShadow: shadowing of predeclared identifier: min'
+    - 'builtinShadow: shadowing of predeclared identifier: max'
+    - 'builtinShadow: shadowing of predeclared identifier: len'
+    - 'var-naming: don''t use an underscore in package name'
