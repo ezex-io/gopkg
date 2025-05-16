@@ -6,8 +6,6 @@ import (
 	"slices"
 	"testing"
 	"time"
-
-	"github.com/ezex-io/gopkg/logger"
 )
 
 // TestSuite provides a set of helper functions for testing purposes.
@@ -178,9 +176,4 @@ func (*TestSuite) DecodingHex(in string) []byte {
 	}
 
 	return d
-}
-
-// TestLogger returns a logger for testing purpose.
-func (*TestSuite) TestLogger() logger.Logger {
-	return logger.NewSlog(nil)
 }
