@@ -14,7 +14,7 @@ var (
 // InitGlobalLogger init global logger.
 func InitGlobalLogger() {
 	once.Do(func() {
-		globLogger = NewSlog(WithTextHandler(os.Stdout, slog.LevelInfo))
+		globLogger = NewSlog(WithTextHandler(os.Stdout, slog.LevelDebug))
 	})
 }
 
