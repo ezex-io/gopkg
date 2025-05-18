@@ -6,4 +6,5 @@ use (
 	./logger
 	./testsuite
 	./middleware/http-mdl
+	./random
 )
