@@ -16,12 +16,6 @@ go get -u github.com/ezex-io/gopkg/middleware/http-mdl
 go get -u github.com/ezex-io/gopkg/logger
 ```
 
-- [random](random): provides a set of helper functions for generating randoms.
-
-```shell
-go get -u github.com/ezex-io/gopkg/random
-```
-
 - [env](env): provides a set of helper functions for dealing with env files.
 
 ```shell
