@@ -29,7 +29,7 @@ func TrapSignal(cleanupFunc func()) {
 	}()
 }
 
-// Character sets
+// Character sets.
 const (
 	Digits       = "0123456789"
 	Alphabets    = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ"

@@ -13,18 +13,18 @@ func TestCORSMiddleware(t *testing.T) {
 	config.AllowedOrigins = []string{"https://example.com"}
 	config.AllowCredentials = true
 
-	middleware := CORS(config)
+	middleware := CORS(&config)
 
 	handler := middleware(http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
 		w.WriteHeader(http.StatusOK)
 	}))
 
-	req := httptest.NewRequest(http.MethodGet, "http://test.com", nil)
+	req := httptest.NewRequest(http.MethodGet, "http://test.com", http.NoBody)
 	w := httptest.NewRecorder()
 
 	handler.ServeHTTP(w, req)
 	res := w.Result()
-	defer res.Body.Close() //nolint:errcheck
+	defer res.Body.Close() //nolint:errcheck // test response body close error is not critical
 
 	assert.Equal(t, http.StatusOK, res.StatusCode)
 	assert.Equal(t, "https://example.com", res.Header.Get("Access-Control-Allow-Origin"))
@@ -35,18 +35,18 @@ func TestCORSMiddleware(t *testing.T) {
 
 func TestCORSMiddlewareOptionsRequest(t *testing.T) {
 	config := DefaultCORSConfig()
-	middleware := CORS(config)
+	middleware := CORS(&config)
 
 	handler := middleware(http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
 		w.WriteHeader(http.StatusOK)
 	}))
 
-	req := httptest.NewRequest(http.MethodOptions, "http://test.com", nil)
+	req := httptest.NewRequest(http.MethodOptions, "http://test.com", http.NoBody)
 	w := httptest.NewRecorder()
 
 	handler.ServeHTTP(w, req)
 	res := w.Result()
-	defer res.Body.Close() //nolint:errcheck
+	defer res.Body.Close() //nolint:errcheck // test response body close error is not critical
 
 	assert.Equal(t, http.StatusNoContent, res.StatusCode)
 	assert.Equal(t, "*", res.Header.Get("Access-Control-Allow-Origin"))

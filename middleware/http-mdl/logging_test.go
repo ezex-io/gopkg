@@ -21,7 +21,7 @@ func TestLoggingMiddleware(t *testing.T) {
 		w.WriteHeader(http.StatusOK)
 	}))
 
-	req := httptest.NewRequest(http.MethodGet, "http://test.com/foo", nil)
+	req := httptest.NewRequest(http.MethodGet, "http://test.com/foo", http.NoBody)
 	req.RemoteAddr = "127.0.0.1"
 	w := httptest.NewRecorder()
 
