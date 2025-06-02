@@ -23,7 +23,7 @@ func DefaultCORSConfig() CORSConfig {
 }
 
 // CORS creates middleware to handle CORS requests.
-func CORS(config CORSConfig) Middleware {
+func CORS(config *CORSConfig) Middleware {
 	return func(next http.Handler) http.Handler {
 		originHeader := strings.Join(config.AllowedOrigins, ", ")
 		methodsHeader := strings.Join(config.AllowedMethods, ", ")

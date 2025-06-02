@@ -15,7 +15,7 @@ func TestRecoverMiddleware(t *testing.T) {
 		panic("unexpected error")
 	}))
 
-	req := httptest.NewRequest(http.MethodGet, "http://test.com", nil)
+	req := httptest.NewRequest(http.MethodGet, "http://test.com", http.NoBody)
 	w := httptest.NewRecorder()
 
 	handler.ServeHTTP(w, req)
@@ -34,7 +34,7 @@ func TestRecoverMiddleware_NoPanic(t *testing.T) {
 		defer func() { _, _ = w.Write([]byte("All Good")) }()
 	}))
 
-	req := httptest.NewRequest(http.MethodGet, "http://test.com", nil)
+	req := httptest.NewRequest(http.MethodGet, "http://test.com", http.NoBody)
 	w := httptest.NewRecorder()
 
 	handler.ServeHTTP(w, req)
