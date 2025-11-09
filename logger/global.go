@@ -36,6 +36,7 @@ func Error(msg string, args ...any) {
 
 func Fatal(msg string, args ...any) {
 	logging(msg, slog.LevelError, args...)
+	//nolint:revive // exit on fatal log
 	os.Exit(1)
 }
 

@@ -1,6 +1,6 @@
 module github.com/ezex-io/gopkg/middleware/http-mdl
 
-go 1.24.1
+go 1.25.1
 
 require github.com/stretchr/testify v1.10.0
 
