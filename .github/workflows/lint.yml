@@ -4,10 +4,9 @@ permissions:
 
 on:
   push:
-    branches: [main]
-
+    branches: ["main"]
   pull_request:
-    branches: [main]
+    branches: ["main"]
 
 jobs:
   linting:
@@ -15,12 +14,12 @@ jobs:
 
     steps:
       - name: Install Go
-        uses: actions/setup-go@v5
+        uses: actions/setup-go@v6
         with:
           go-version: "stable"
 
       - name: Checkout code
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
 
       - name: Installing golangci-lint
         run: go install github.com/golangci/golangci-lint/cmd/golangci-lint@latest

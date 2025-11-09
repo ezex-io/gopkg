@@ -1,4 +1,4 @@
-package utils
+package util
 
 import (
 	"crypto/rand"
@@ -25,6 +25,8 @@ func TrapSignal(cleanupFunc func()) {
 		case syscall.SIGTERM:
 			exitCode += int(syscall.SIGTERM)
 		}
+
+		//nolint:revive // exit on fatal log
 		os.Exit(exitCode)
 	}()
 }

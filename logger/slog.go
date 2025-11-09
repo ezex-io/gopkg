@@ -71,6 +71,7 @@ func (s *Slog) Error(msg string, args ...any) {
 
 func (s *Slog) Fatal(msg string, args ...any) {
 	s.log.Error(msg, args...)
+	//nolint:revive // exit on fatal log
 	os.Exit(1)
 }
 

@@ -1,3 +1,3 @@
 module github.com/ezex-io/gopkg/testsuite
 
-go 1.24.1
+go 1.25.1
