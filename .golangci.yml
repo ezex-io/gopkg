@@ -168,6 +168,10 @@ linters:
         - td *testData
         - ma multiaddr.Multiaddr
         - db *leveldb.DB
+
+    ireturn:
+      allow: [anon, error, empty, stdlib, generic]
+
   exclusions:
     generated: lax
     rules:

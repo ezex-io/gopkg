@@ -32,8 +32,6 @@ func WithDefault(defVal string) Option {
 // applies the provided options, and converts it to the desired type T.
 //
 // Panics if the conversion fails or the type is unsupported.
-//
-//nolint:ireturn // GetEnv returns generic interface
 func GetEnv[T SupportedTypes](key string, options ...Option) T {
 	val := os.Getenv(key)
 	for _, opt := range options {
