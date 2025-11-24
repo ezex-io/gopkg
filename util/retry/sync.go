@@ -12,7 +12,7 @@ type syncOptions struct {
 	retryDelay time.Duration
 }
 
-func _defaultSyncOpts() *syncOptions {
+func defaultSyncOpts() *syncOptions {
 	return &syncOptions{
 		maxRetries: 3,
 		retryDelay: 2 * time.Second,
@@ -33,35 +33,44 @@ func WithSyncRetryDelay(retryDelay time.Duration) Options {
 
 // ExecuteSync executes a function synchronously with retry logic
 // It respects context cancellation and timeout
-// Returns nil if the function succeeds, or the last error if all retries are exhausted
-func ExecuteSync(ctx context.Context, fn func() error, opts ...Options) error {
-	conf := _defaultSyncOpts()
+// Returns nil if the function succeeds, or the last error if all retries are exhausted.
+func ExecuteSync(ctx context.Context,
+	task Task,
+	opts ...Options,
+) error {
+	_, err := ExecuteSyncT(ctx, func() (any, error) {
+		return nil, task()
+	}, opts...)
+
+	return err
+}
+
+// ExecuteSyncT executes a function synchronously with retry logic and returns a result
+// It respects context cancellation and timeout
+// Returns the result if the function succeeds, or the last error if all retries are exhausted.
+func ExecuteSyncT[T any](ctx context.Context,
+	task TaskT[T], opts ...Options,
+) (T, error) {
+	conf := defaultSyncOpts()
 	for _, opt := range opts {
 		opt(conf)
 	}
 
-	var lastErr error
+	var result T
+	var err error
 	for attempt := 0; attempt < conf.maxRetries; attempt++ {
-		// Check if context is cancelled before each attempt
-		select {
-		case <-ctx.Done():
-			return ctx.Err()
-		default:
-		}
-
-		err := fn()
+		result, err = task()
 		if err == nil {
-			return nil
+			return result, nil
 		}
-
-		lastErr = err
 
 		// Don't wait after the last attempt
 		if attempt < conf.maxRetries-1 {
 			// Wait before retry, but respect context cancellation
 			select {
 			case <-ctx.Done():
-				return ctx.Err()
+				return result, ctx.Err()
+
 			case <-time.After(conf.retryDelay):
 				// Continue to next retry
 			}
@@ -69,5 +78,5 @@ func ExecuteSync(ctx context.Context, fn func() error, opts ...Options) error {
 	}
 
 	// All retries exhausted
-	return lastErr
+	return result, err
 }
