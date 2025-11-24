@@ -5,6 +5,11 @@ import (
 	"time"
 )
 
+type (
+	SyncTask         func() error
+	SyncTaskT[T any] func() (T, error)
+)
+
 type Options func(*syncOptions)
 
 type syncOptions struct {
@@ -35,7 +40,7 @@ func WithSyncRetryDelay(retryDelay time.Duration) Options {
 // It respects context cancellation and timeout
 // Returns nil if the function succeeds, or the last error if all retries are exhausted.
 func ExecuteSync(ctx context.Context,
-	task Task,
+	task SyncTask,
 	opts ...Options,
 ) error {
 	_, err := ExecuteSyncT(ctx, func() (any, error) {
@@ -49,7 +54,7 @@ func ExecuteSync(ctx context.Context,
 // It respects context cancellation and timeout
 // Returns the result if the function succeeds, or the last error if all retries are exhausted.
 func ExecuteSyncT[T any](ctx context.Context,
-	task TaskT[T], opts ...Options,
+	task SyncTaskT[T], opts ...Options,
 ) (T, error) {
 	conf := defaultSyncOpts()
 	for _, opt := range opts {

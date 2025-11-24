@@ -19,10 +19,9 @@ func TestExecuteAsync_Success(t *testing.T) {
 
 	ExecuteAsync(ctx, func() error {
 		atomic.AddInt32(&callCount, 1)
+		successCalled <- true
 
 		return nil
-	}, func() {
-		successCalled <- true
 	}, func(error) {
 		failureCalled <- true
 	})
@@ -52,10 +51,9 @@ func TestExecuteAsync_SuccessAfterRetries(t *testing.T) {
 		if count < expectedCalls {
 			return errors.New("temporary error")
 		}
+		successCalled <- true
 
 		return nil
-	}, func() {
-		successCalled <- true
 	}, func(error) {
 		failureCalled <- true
 	}, WithAsyncMaxRetries(3), WithAsyncRetryDelay(10*time.Millisecond))
@@ -86,8 +84,6 @@ func TestExecuteAsync_AllRetriesFail(t *testing.T) {
 		atomic.AddInt32(&callCount, 1)
 
 		return expectedError
-	}, func() {
-		successCalled <- true
 	}, func(err error) {
 		failureCalled <- err
 	}, WithAsyncMaxRetries(maxRetries), WithAsyncRetryDelay(10*time.Millisecond))
@@ -108,7 +104,6 @@ func TestExecuteAsync_AllRetriesFail(t *testing.T) {
 func TestExecuteAsync_ContextCancellationDuringRetry(t *testing.T) {
 	ctx, cancel := context.WithCancel(context.Background())
 	callCount := int32(0)
-	successCalled := make(chan bool, 1)
 	failureCalled := make(chan error, 1)
 
 	ExecuteAsync(ctx, func() error {
@@ -122,8 +117,6 @@ func TestExecuteAsync_ContextCancellationDuringRetry(t *testing.T) {
 		}
 
 		return errors.New("temporary error")
-	}, func() {
-		successCalled <- true
 	}, func(err error) {
 		failureCalled <- err
 	}, WithAsyncMaxRetries(5), WithAsyncRetryDelay(100*time.Millisecond))
@@ -132,8 +125,6 @@ func TestExecuteAsync_ContextCancellationDuringRetry(t *testing.T) {
 	select {
 	case err := <-failureCalled:
 		assert.ErrorIs(t, err, context.Canceled)
-	case <-successCalled:
-		t.Error("Expected failure callback, but success callback was called")
 	case <-time.After(2 * time.Second):
 		t.Error("Timeout waiting for callback")
 	}
@@ -155,7 +146,7 @@ func TestExecuteAsync_NilCallbacks(t *testing.T) {
 		done <- true
 
 		return nil
-	}, nil, nil)
+	}, nil)
 
 	// Wait for function to complete
 	select {
@@ -180,10 +171,10 @@ func TestExecuteAsync_ConcurrentCalls(t *testing.T) {
 			defer wg.Done()
 			done := make(chan bool, 1)
 			ExecuteAsync(ctx, func() error {
-				return nil
-			}, func() {
 				atomic.AddInt32(&successCount, 1)
 				done <- true
+
+				return nil
 			}, func(error) {
 				t.Error("Failure callback should not be called")
 			})

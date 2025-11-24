@@ -5,6 +5,10 @@ import (
 	"time"
 )
 
+type (
+	AsyncTask func()
+)
+
 type AsyncOptions func(*asyncOptions)
 
 type asyncOptions struct {
@@ -36,31 +40,7 @@ func WithAsyncRetryDelay(retryDelay time.Duration) AsyncOptions {
 // onSuccess and onFailure callbacks will be called exactly once.
 func ExecuteAsync(
 	ctx context.Context,
-	task Task,
-	onSuccess func(),
-	onFailure func(error),
-	opts ...AsyncOptions,
-) {
-	ExecuteAsyncT(ctx, func() (any, error) {
-		return nil, task()
-	}, func(any) {
-		if onSuccess != nil {
-			onSuccess()
-		}
-	}, func(err error) {
-		if onFailure != nil {
-			onFailure(err)
-		}
-	}, opts...)
-}
-
-// ExecuteAsyncT executes a function asynchronously with retry logic and returns a result
-// It respects context cancellation and timeout
-// onSuccess and onFailure callbacks will be called exactly once.
-func ExecuteAsyncT[T any](
-	ctx context.Context,
-	task TaskT[T],
-	onSuccess func(T),
+	task SyncTask,
 	onFailure func(error),
 	opts ...AsyncOptions,
 ) {
@@ -70,15 +50,10 @@ func ExecuteAsyncT[T any](
 	}
 
 	go func() {
-		var result T
 		var err error
 		for attempt := 0; attempt < conf.maxRetries; attempt++ {
-			result, err = task()
+			err = task()
 			if err == nil {
-				if onSuccess != nil {
-					onSuccess(result)
-				}
-
 				return
 			}
 
