@@ -5,28 +5,28 @@ import (
 	"time"
 )
 
-type Options func(*syncOptions)
+type SyncOptionsApplier func(*SyncOptions)
 
-type syncOptions struct {
+type SyncOptions struct {
 	maxRetries int
 	retryDelay time.Duration
 }
 
-func _defaultSyncOpts() *syncOptions {
-	return &syncOptions{
+func _defaultSyncOpts() *SyncOptions {
+	return &SyncOptions{
 		maxRetries: 3,
 		retryDelay: 2 * time.Second,
 	}
 }
 
-func WithSyncMaxRetries(maxRetries int) Options {
-	return func(o *syncOptions) {
+func WithSyncMaxRetries(maxRetries int) SyncOptionsApplier {
+	return func(o *SyncOptions) {
 		o.maxRetries = maxRetries
 	}
 }
 
-func WithSyncRetryDelay(retryDelay time.Duration) Options {
-	return func(o *syncOptions) {
+func WithSyncRetryDelay(retryDelay time.Duration) SyncOptionsApplier {
+	return func(o *SyncOptions) {
 		o.retryDelay = retryDelay
 	}
 }
@@ -34,7 +34,7 @@ func WithSyncRetryDelay(retryDelay time.Duration) Options {
 // ExecuteSync executes a function synchronously with retry logic
 // It respects context cancellation and timeout
 // Returns nil if the function succeeds, or the last error if all retries are exhausted
-func ExecuteSync(ctx context.Context, fn func() error, opts ...Options) error {
+func ExecuteSync(ctx context.Context, fn func() error, opts ...SyncOptionsApplier) error {
 	conf := _defaultSyncOpts()
 	for _, opt := range opts {
 		opt(conf)

@@ -6,28 +6,28 @@ import (
 	"time"
 )
 
-type AsyncOptions func(*asyncOptions)
+type AsyncOptionsApplier func(*AsyncOptions)
 
-type asyncOptions struct {
+type AsyncOptions struct {
 	maxRetries int
 	retryDelay time.Duration
 }
 
-func _defaultAsyncOpts() *asyncOptions {
-	return &asyncOptions{
+func _defaultAsyncOpts() *AsyncOptions {
+	return &AsyncOptions{
 		maxRetries: 3,
 		retryDelay: 2 * time.Second,
 	}
 }
 
-func WithAsyncMaxRetries(maxRetries int) AsyncOptions {
-	return func(o *asyncOptions) {
+func WithAsyncMaxRetries(maxRetries int) AsyncOptionsApplier {
+	return func(o *AsyncOptions) {
 		o.maxRetries = maxRetries
 	}
 }
 
-func WithAsyncRetryDelay(retryDelay time.Duration) AsyncOptions {
-	return func(o *asyncOptions) {
+func WithAsyncRetryDelay(retryDelay time.Duration) AsyncOptionsApplier {
+	return func(o *AsyncOptions) {
 		o.retryDelay = retryDelay
 	}
 }
@@ -40,7 +40,7 @@ func ExecuteAsync(
 	fn func() error,
 	onSuccess func(),
 	onFailure func(error),
-	opts ...AsyncOptions,
+	opts ...AsyncOptionsApplier,
 ) {
 	conf := _defaultAsyncOpts()
 	for _, opt := range opts {

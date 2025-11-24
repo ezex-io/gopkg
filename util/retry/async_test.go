@@ -444,7 +444,7 @@ func TestExecuteAsync_DefaultOptions(t *testing.T) {
 	callCount := int32(0)
 	failureCalled := make(chan error, 1)
 
-	// Use default syncOptions (3 retries, 2 second delay) but override delay to make test faster
+	// Use default SyncOptions (3 retries, 2 second delay) but override delay to make test faster
 	ExecuteAsync(ctx, func() error {
 		atomic.AddInt32(&callCount, 1)
 		return errors.New("persistent error")

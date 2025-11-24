@@ -149,7 +149,7 @@ func TestExecuteSync_DefaultOptions(t *testing.T) {
 	ctx := context.Background()
 	callCount := 0
 
-	// Use default syncOptions (3 retries, 2 second delay)
+	// Use default SyncOptions (3 retries, 2 second delay)
 	err := ExecuteSync(ctx, func() error {
 		callCount++
 		return errors.New("persistent error")
