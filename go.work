@@ -2,8 +2,8 @@ go 1.25.1
 
 use (
 	./env
-	./util
 	./logger
-	./testsuite
 	./middleware/http-mdl
+	./testsuite
+	./util
 )
