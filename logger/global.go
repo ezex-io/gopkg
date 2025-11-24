@@ -19,28 +19,28 @@ func InitGlobalLogger() {
 }
 
 func Debug(msg string, args ...any) {
-	logging(msg, slog.LevelDebug, args...)
+	log(msg, slog.LevelDebug, args...)
 }
 
 func Info(msg string, args ...any) {
-	logging(msg, slog.LevelInfo, args...)
+	log(msg, slog.LevelInfo, args...)
 }
 
 func Warn(msg string, args ...any) {
-	logging(msg, slog.LevelWarn, args...)
+	log(msg, slog.LevelWarn, args...)
 }
 
 func Error(msg string, args ...any) {
-	logging(msg, slog.LevelError, args...)
+	log(msg, slog.LevelError, args...)
 }
 
 func Fatal(msg string, args ...any) {
-	logging(msg, slog.LevelError, args...)
+	log(msg, slog.LevelError, args...)
 	//nolint:revive // exit on fatal log
 	os.Exit(1)
 }
 
-func logging(msg string, level slog.Level, args ...any) {
+func log(msg string, level slog.Level, args ...any) {
 	if globLogger == nil {
 		InitGlobalLogger()
 	}
