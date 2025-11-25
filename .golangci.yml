@@ -65,6 +65,7 @@ linters:
     - wastedassign
     - whitespace
     - zerologlint
+    - testifylint
   settings:
     gocritic:
       disabled-checks:
@@ -152,6 +153,7 @@ linters:
         - ok
         - ip
         - "no"
+        - id
         - tt
         - i
         - j
@@ -171,6 +173,11 @@ linters:
 
     ireturn:
       allow: [anon, error, empty, stdlib, generic]
+
+    usetesting:
+      os-temp-dir: true
+      context-background: true
+      context-todo: true
 
   exclusions:
     generated: lax
