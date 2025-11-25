@@ -9,15 +9,15 @@ import (
 	"time"
 
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 func TestExecuteAsync_Success(t *testing.T) {
-	ctx := context.Background()
 	callCount := int32(0)
 	successCalled := make(chan bool, 1)
 	failureCalled := make(chan bool, 1)
 
-	ExecuteAsync(ctx, func() error {
+	ExecuteAsync(t.Context(), func() error {
 		atomic.AddInt32(&callCount, 1)
 		successCalled <- true
 
@@ -40,13 +40,12 @@ func TestExecuteAsync_Success(t *testing.T) {
 }
 
 func TestExecuteAsync_SuccessAfterRetries(t *testing.T) {
-	ctx := context.Background()
 	callCount := int32(0)
 	expectedCalls := int32(2)
 	successCalled := make(chan bool, 1)
 	failureCalled := make(chan bool, 1)
 
-	ExecuteAsync(ctx, func() error {
+	ExecuteAsync(t.Context(), func() error {
 		count := atomic.AddInt32(&callCount, 1)
 		if count < expectedCalls {
 			return errors.New("temporary error")
@@ -73,14 +72,13 @@ func TestExecuteAsync_SuccessAfterRetries(t *testing.T) {
 }
 
 func TestExecuteAsync_AllRetriesFail(t *testing.T) {
-	ctx := context.Background()
 	callCount := int32(0)
 	expectedError := errors.New("persistent error")
 	maxRetries := 3
 	successCalled := make(chan bool, 1)
 	failureCalled := make(chan error, 1)
 
-	ExecuteAsync(ctx, func() error {
+	ExecuteAsync(t.Context(), func() error {
 		atomic.AddInt32(&callCount, 1)
 
 		return expectedError
@@ -102,7 +100,7 @@ func TestExecuteAsync_AllRetriesFail(t *testing.T) {
 }
 
 func TestExecuteAsync_ContextCancellationDuringRetry(t *testing.T) {
-	ctx, cancel := context.WithCancel(context.Background())
+	ctx, cancel := context.WithCancel(t.Context())
 	callCount := int32(0)
 	failureCalled := make(chan error, 1)
 
@@ -124,7 +122,7 @@ func TestExecuteAsync_ContextCancellationDuringRetry(t *testing.T) {
 	// Wait for failure callback
 	select {
 	case err := <-failureCalled:
-		assert.ErrorIs(t, err, context.Canceled)
+		require.ErrorIs(t, err, context.Canceled)
 	case <-time.After(2 * time.Second):
 		t.Error("Timeout waiting for callback")
 	}
@@ -136,12 +134,11 @@ func TestExecuteAsync_ContextCancellationDuringRetry(t *testing.T) {
 }
 
 func TestExecuteAsync_NilCallbacks(t *testing.T) {
-	ctx := context.Background()
 	callCount := int32(0)
 	done := make(chan bool, 1)
 
 	// Test with nil callbacks - should not panic
-	ExecuteAsync(ctx, func() error {
+	ExecuteAsync(t.Context(), func() error {
 		atomic.AddInt32(&callCount, 1)
 		done <- true
 
@@ -160,7 +157,6 @@ func TestExecuteAsync_NilCallbacks(t *testing.T) {
 }
 
 func TestExecuteAsync_ConcurrentCalls(t *testing.T) {
-	ctx := context.Background()
 	concurrentCalls := 10
 	var wg sync.WaitGroup
 	successCount := int32(0)
@@ -170,7 +166,7 @@ func TestExecuteAsync_ConcurrentCalls(t *testing.T) {
 		go func() {
 			defer wg.Done()
 			done := make(chan bool, 1)
-			ExecuteAsync(ctx, func() error {
+			ExecuteAsync(t.Context(), func() error {
 				atomic.AddInt32(&successCount, 1)
 				done <- true
 

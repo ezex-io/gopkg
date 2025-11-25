@@ -8,28 +8,27 @@ import (
 	"time"
 
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 func TestExecuteSync_Success(t *testing.T) {
-	ctx := context.Background()
 	callCount := 0
 
-	err := ExecuteSync(ctx, func() error {
+	err := ExecuteSync(t.Context(), func() error {
 		callCount++
 
 		return nil
 	})
 
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	assert.Equal(t, 1, callCount, "Expected function to be called once")
 }
 
 func TestExecuteSync_SuccessAfterRetries(t *testing.T) {
-	ctx := context.Background()
 	callCount := 0
 	expectedCalls := 2
 
-	err := ExecuteSync(ctx, func() error {
+	err := ExecuteSync(t.Context(), func() error {
 		callCount++
 		if callCount < expectedCalls {
 			return errors.New("temporary error")
@@ -38,29 +37,28 @@ func TestExecuteSync_SuccessAfterRetries(t *testing.T) {
 		return nil
 	}, WithSyncMaxRetries(3), WithSyncRetryDelay(10*time.Millisecond))
 
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	assert.Equal(t, expectedCalls, callCount, "Expected function to be called %d times", expectedCalls)
 }
 
 func TestExecuteSync_AllRetriesFail(t *testing.T) {
-	ctx := context.Background()
 	callCount := 0
 	expectedError := errors.New("persistent error")
 	maxRetries := 3
 
-	err := ExecuteSync(ctx, func() error {
+	err := ExecuteSync(t.Context(), func() error {
 		callCount++
 
 		return expectedError
 	}, WithSyncMaxRetries(maxRetries), WithSyncRetryDelay(10*time.Millisecond))
 
-	assert.Error(t, err)
+	require.Error(t, err)
 	assert.Equal(t, expectedError, err)
 	assert.Equal(t, maxRetries, callCount)
 }
 
 func TestExecuteSync_ContextCancellationDuringRetry(t *testing.T) {
-	ctx, cancel := context.WithCancel(context.Background())
+	ctx, cancel := context.WithCancel(t.Context())
 	callCount := 0
 
 	err := ExecuteSync(ctx, func() error {
@@ -76,14 +74,13 @@ func TestExecuteSync_ContextCancellationDuringRetry(t *testing.T) {
 		return errors.New("temporary error")
 	}, WithSyncMaxRetries(5), WithSyncRetryDelay(100*time.Millisecond))
 
-	assert.Error(t, err)
-	assert.ErrorIs(t, err, context.Canceled)
+	require.Error(t, err)
+	require.ErrorIs(t, err, context.Canceled)
 	assert.GreaterOrEqual(t, callCount, 1, "Should be called at least once")
 	assert.Less(t, callCount, 5, "Should not complete all retries")
 }
 
 func TestExecuteSync_ConcurrentCalls(t *testing.T) {
-	ctx := context.Background()
 	concurrentCalls := 10
 	var wg sync.WaitGroup
 	wg.Add(concurrentCalls)
@@ -91,7 +88,7 @@ func TestExecuteSync_ConcurrentCalls(t *testing.T) {
 	for i := 0; i < concurrentCalls; i++ {
 		go func() {
 			defer wg.Done()
-			err := ExecuteSync(ctx, func() error {
+			err := ExecuteSync(t.Context(), func() error {
 				return nil
 			})
 			assert.NoError(t, err)

@@ -5,7 +5,6 @@ import (
 	"log"
 	"net/http"
 	"net/http/httptest"
-	"strings"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -32,5 +31,5 @@ func TestLoggingMiddleware(t *testing.T) {
 	assert.Equal(t, http.StatusOK, res.StatusCode)
 	logged := logBuffer.String()
 	assert.Contains(t, logged, "[GET] /foo 127.0.0.1")
-	assert.True(t, strings.Contains(logged, "ms"))
+	assert.Contains(t, logged, "ms")
 }
