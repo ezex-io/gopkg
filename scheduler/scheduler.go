@@ -17,18 +17,12 @@ type Scheduler struct {
 
 type Option func(*Scheduler)
 
-func NewScheduler(ctx context.Context, name string, opts ...Option) Scheduler {
-	scheduler := Scheduler{
+func NewScheduler(ctx context.Context, name string) Scheduler {
+	return Scheduler{
 		ctx:  ctx,
 		jobs: make([]Job, 0),
 		name: name,
 	}
-
-	for _, opt := range opts {
-		opt(&scheduler)
-	}
-
-	return scheduler
 }
 
 // WithOnSuccess registers a callback to run after all jobs succeed in a tick.
@@ -43,7 +37,11 @@ func (s *Scheduler) AddJob(job Job) {
 }
 
 // Start starts the scheduler and runs the jobs on the given interval.
-func (s *Scheduler) Start(interval time.Duration) {
+func (s *Scheduler) Start(interval time.Duration, opts ...Option) {
+	for _, opt := range opts {
+		opt(s)
+	}
+
 	Every(s.ctx, interval).Do(func(ctx context.Context) {
 		s.runJobs(ctx)
 	})
