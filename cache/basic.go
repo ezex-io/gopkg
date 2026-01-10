@@ -5,7 +5,7 @@ import (
 	"sync"
 	"time"
 
-	"github.com/ezex-io/gopkg/util/scheduler"
+	"github.com/ezex-io/gopkg/scheduler"
 )
 
 type BasicCache[K any, V any] struct {
@@ -27,7 +27,9 @@ func NewBasic[K any, V any](ctx context.Context, opts ...Option) Cache[K, V] {
 		cache: sync.Map{},
 	}
 
-	scheduler.Every(ctx, cfg.cleanUpInterval, cache.cleanupExpiredEntries)
+	scheduler.Every(ctx, cfg.cleanUpInterval).Do(func(context.Context) {
+		cache.cleanupExpiredEntries()
+	})
 
 	return cache
 }
