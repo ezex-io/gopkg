@@ -52,11 +52,6 @@ func Every(ctx context.Context, duration time.Duration, callback func()) {
 	}()
 }
 
-type IScheduler interface {
-	Submit(job Job)
-	Run()
-}
-
 type Scheduler struct {
 	ctx  context.Context
 	jobs []Job
@@ -71,7 +66,7 @@ func NewScheduler(ctx context.Context, name string) Scheduler {
 	}
 }
 
-func (s *Scheduler) Submit(job Job) {
+func (s *Scheduler) AddJob(job Job) {
 	s.jobs = append(s.jobs, job)
 }
 
