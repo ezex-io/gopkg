@@ -4,9 +4,9 @@ import (
 	"context"
 	"log"
 	"runtime/debug"
-	"sync"
-	"sync/atomic"
 	"time"
+
+	"golang.org/x/sync/errgroup"
 )
 
 func After(ctx context.Context, duration time.Duration, callback func()) {
@@ -83,24 +83,22 @@ func (s *Scheduler) Start(interval time.Duration, onSuccess func()) {
 }
 
 func (s *Scheduler) runJobs(onSuccess func()) {
-	var wg sync.WaitGroup
-	var success atomic.Bool
-	success.Store(true)
+	group, ctx := errgroup.WithContext(s.ctx)
 
 	for _, j := range s.jobs {
 		job := j
-		wg.Add(1)
-		go func() {
-			defer wg.Done()
-			if err := job.Run(s.ctx); err != nil {
+		group.Go(func() error {
+			if err := job.Run(ctx); err != nil {
 				log.Printf("job failed: %v", err)
-				success.Store(false)
+
+				return err
 			}
-		}()
+
+			return nil
+		})
 	}
 
-	wg.Wait()
-	if success.Load() && onSuccess != nil {
+	if err := group.Wait(); err == nil && onSuccess != nil {
 		onSuccess()
 	}
 }
