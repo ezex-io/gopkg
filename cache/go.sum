@@ -1,2 +1,4 @@
 github.com/ezex-io/gopkg/util v1.1.0 h1:m5NxMb3xCINbXbyrwa7+TTqM5FJwhh4uoxpWZ6tvZNw=
 github.com/ezex-io/gopkg/util v1.1.0/go.mod h1:SgL2SetYwXdUsjp2ITccK/7L1ZSgH3oezrtIKmO+ncI=
+github.com/ezex-io/gopkg/util v1.1.1-0.20260110114249-4d5968984cbb h1:EBgEFbsTe6yi2UOrr7rW6p1hAA1RjtsfvhQU8jjwPtc=
+github.com/ezex-io/gopkg/util v1.1.1-0.20260110114249-4d5968984cbb/go.mod h1:L5YNz4Dw+80KRJESOB5ZXi+YkUZuZu82EiXygWNkTK0=
