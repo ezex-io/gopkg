@@ -14,7 +14,7 @@ func TestAfterRunsWhenNotCanceled(t *testing.T) {
 	t.Cleanup(cancel)
 
 	done := make(chan struct{})
-	go After(ctx, 5*time.Millisecond, func() {
+	After(ctx, 5*time.Millisecond, func() {
 		close(done)
 	})
 
@@ -29,7 +29,7 @@ func TestAfterStopsOnCancel(t *testing.T) {
 	ctx, cancel := context.WithCancel(context.Background())
 
 	var called atomic.Bool
-	go After(ctx, 20*time.Millisecond, func() {
+	After(ctx, 20*time.Millisecond, func() {
 		called.Store(true)
 	})
 
@@ -46,14 +46,12 @@ func TestEveryRunsUntilContextCanceled(t *testing.T) {
 	var count atomic.Int32
 
 	done := make(chan struct{})
-	go func() {
-		Every(ctx, 2*time.Millisecond, func() {
-			if count.Add(1) == 3 {
-				cancel()
-			}
-		})
-		close(done)
-	}()
+	Every(ctx, 2*time.Millisecond, func() {
+		if count.Add(1) == 3 {
+			cancel()
+			close(done)
+		}
+	})
 
 	select {
 	case <-done:
@@ -74,23 +72,22 @@ func TestEveryRecoversFromPanic(t *testing.T) {
 	origOutput := log.Writer()
 	var buf bytes.Buffer
 	log.SetOutput(&buf)
+
 	t.Cleanup(func() {
 		log.SetOutput(origOutput)
 	})
 
 	done := make(chan struct{})
-	go func() {
-		Every(ctx, 2*time.Millisecond, func() {
-			n := count.Add(1)
-			if n == 1 {
-				panic("boom")
-			}
-			if n >= 2 {
-				cancel()
-			}
-		})
-		close(done)
-	}()
+	Every(ctx, 2*time.Millisecond, func() {
+		n := count.Add(1)
+		if n == 1 {
+			panic("boom")
+		}
+		if n >= 2 {
+			cancel()
+			close(done)
+		}
+	})
 
 	select {
 	case <-done:
