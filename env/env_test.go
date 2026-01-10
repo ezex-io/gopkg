@@ -8,11 +8,12 @@ import (
 
 	"github.com/ezex-io/gopkg/env"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 // TestGetEnvEmpty verifies ???
 func TestGetEnvEmpty(t *testing.T) {
-	assert.Equal(t, "", env.GetEnv[string]("MY_STRING"))
+	assert.Empty(t, env.GetEnv[string]("MY_STRING"))
 	assert.Equal(t, []string{}, env.GetEnv[[]string]("MY_STRING_LIST"))
 }
 
@@ -26,8 +27,8 @@ func TestGetEnv(t *testing.T) {
 	t.Setenv("MY_DURATION", "5m")
 
 	assert.Equal(t, 1, env.GetEnv[int]("MY_INT"))
-	assert.Equal(t, true, env.GetEnv[bool]("MY_BOOL"))
-	assert.Equal(t, 3.14, env.GetEnv[float64]("MY_FLOAT"))
+	assert.True(t, env.GetEnv[bool]("MY_BOOL"))
+	assert.InEpsilon(t, 3.14, env.GetEnv[float64]("MY_FLOAT"), 0.0001)
 	assert.Equal(t, "str", env.GetEnv[string]("MY_STRING"))
 	assert.Equal(t, []string{"str1", "str2"}, env.GetEnv[[]string]("MY_STRING_LIST"))
 	assert.Equal(t, time.Minute*5, env.GetEnv[time.Duration]("MY_DURATION"))
@@ -36,11 +37,11 @@ func TestGetEnv(t *testing.T) {
 // TestGetEnvWithDefault verifies that default values are used when environment variables are not set.
 func TestGetEnvWithDefault(t *testing.T) {
 	assert.Equal(t, 1, env.GetEnv[int]("MY_INT", env.WithDefault("1")))
-	assert.Equal(t, false, env.GetEnv[bool]("MY_BOOL", env.WithDefault("false")))
-	assert.Equal(t, true, env.GetEnv[bool]("MY_BOOL", env.WithDefault("true")))
-	assert.Equal(t, false, env.GetEnv[bool]("MY_BOOL", env.WithDefault("0")))
-	assert.Equal(t, true, env.GetEnv[bool]("MY_BOOL", env.WithDefault("1")))
-	assert.Equal(t, 3.14, env.GetEnv[float64]("MY_FLOAT", env.WithDefault("3.14")))
+	assert.False(t, env.GetEnv[bool]("MY_BOOL", env.WithDefault("false")))
+	assert.True(t, env.GetEnv[bool]("MY_BOOL", env.WithDefault("true")))
+	assert.False(t, env.GetEnv[bool]("MY_BOOL", env.WithDefault("0")))
+	assert.True(t, env.GetEnv[bool]("MY_BOOL", env.WithDefault("1")))
+	assert.InEpsilon(t, 3.14, env.GetEnv[float64]("MY_FLOAT", env.WithDefault("3.14")), 0.0001)
 	assert.Equal(t, "str", env.GetEnv[string]("MY_STRING", env.WithDefault("str")))
 	assert.Equal(t, []string{"str1", "str2"}, env.GetEnv[[]string]("MY_STRING_LIST", env.WithDefault("str1,str2")))
 	assert.Equal(t, time.Second*5, env.GetEnv[time.Duration]("MY_DURATION", env.WithDefault("5s")))
@@ -52,10 +53,10 @@ func TestGetEnvNotSet(t *testing.T) {
 		assert.Equal(t, 1, env.GetEnv[int]("MY_INT"))
 	})
 	assert.Panics(t, func() {
-		assert.Equal(t, true, env.GetEnv[bool]("MY_BOOL"))
+		assert.True(t, env.GetEnv[bool]("MY_BOOL"))
 	})
 	assert.Panics(t, func() {
-		assert.Equal(t, 3.14, env.GetEnv[float64]("MY_FLOAT"))
+		assert.InEpsilon(t, 3.14, env.GetEnv[float64]("MY_FLOAT"), 0.0001)
 	})
 	assert.Panics(t, func() {
 		assert.Equal(t, "two seconds", env.GetEnv[time.Duration]("MY_DURATION"))
@@ -68,13 +69,13 @@ func TestGetEnvWrongType(t *testing.T) {
 		assert.Equal(t, 1, env.GetEnv[int]("MY_INT", env.WithDefault("one")))
 	})
 	assert.Panics(t, func() {
-		assert.Equal(t, true, env.GetEnv[bool]("MY_BOOL", env.WithDefault("ok")))
+		assert.True(t, env.GetEnv[bool]("MY_BOOL", env.WithDefault("ok")))
 	})
 	assert.Panics(t, func() {
-		assert.Equal(t, 3.14, env.GetEnv[float64]("MY_FLOAT", env.WithDefault("pi")))
+		assert.InEpsilon(t, 3.14, env.GetEnv[float64]("MY_FLOAT", env.WithDefault("pi")), 0.0001)
 	})
 	assert.Panics(t, func() {
-		assert.Equal(t, 2*time.Second, env.GetEnv[float64]("MY_DURATION", env.WithDefault("2 seconds")))
+		assert.InEpsilon(t, 2.0, env.GetEnv[float64]("MY_DURATION", env.WithDefault("2 seconds")), 0.0001)
 	})
 }
 
@@ -89,7 +90,7 @@ func TestLoadEnvsFromFileSuccess(t *testing.T) {
 
 	err = env.LoadEnvsFromFile(envPath)
 
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	assert.Equal(t, "bar", os.Getenv("FOO"))
 }
 

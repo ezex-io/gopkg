@@ -10,7 +10,7 @@ import (
 )
 
 func TestAfterRunsWhenNotCanceled(t *testing.T) {
-	ctx, cancel := context.WithCancel(context.Background())
+	ctx, cancel := context.WithCancel(t.Context())
 	t.Cleanup(cancel)
 
 	done := make(chan struct{})
@@ -26,7 +26,7 @@ func TestAfterRunsWhenNotCanceled(t *testing.T) {
 }
 
 func TestAfterStopsOnCancel(t *testing.T) {
-	ctx, cancel := context.WithCancel(context.Background())
+	ctx, cancel := context.WithCancel(t.Context())
 
 	var called atomic.Bool
 	After(ctx, 20*time.Millisecond, func() {
@@ -42,7 +42,7 @@ func TestAfterStopsOnCancel(t *testing.T) {
 }
 
 func TestEveryRunsUntilContextCanceled(t *testing.T) {
-	ctx, cancel := context.WithCancel(context.Background())
+	ctx, cancel := context.WithCancel(t.Context())
 	var count atomic.Int32
 
 	done := make(chan struct{})
@@ -65,7 +65,7 @@ func TestEveryRunsUntilContextCanceled(t *testing.T) {
 }
 
 func TestEveryRecoversFromPanic(t *testing.T) {
-	ctx, cancel := context.WithCancel(context.Background())
+	ctx, cancel := context.WithCancel(t.Context())
 	var count atomic.Int32
 
 	// Silence panic log noise while still validating recovery path.
