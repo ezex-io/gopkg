@@ -1,4 +1,4 @@
-PACKAGES := logger util testsuite env middleware/http-mdl
+PACKAGES := logger cache util testsuite env middleware/http-mdl
 ROOT_DIR := $(shell pwd)
 LINT_CONFIG := $(ROOT_DIR)/.golangci.yml
 
