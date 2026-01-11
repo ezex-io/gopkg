@@ -14,7 +14,7 @@ type testJob struct {
 	runs *atomic.Int32
 }
 
-func (j testJob) Run(_ context.Context) error {
+func (j testJob) Run() error {
 	j.runs.Add(1)
 
 	return nil
@@ -25,7 +25,7 @@ type errorJob struct {
 	cancel context.CancelFunc
 }
 
-func (j errorJob) Run(_ context.Context) error {
+func (j errorJob) Run() error {
 	j.runs.Add(1)
 	j.cancel()
 
