@@ -6,6 +6,7 @@ use (
 	./logger
 	./middleware/http-mdl
 	./scheduler
+	./pipeline
 	./testsuite
 	./util
 )

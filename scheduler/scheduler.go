@@ -43,12 +43,12 @@ func (s *Scheduler) Start(interval time.Duration, opts ...Option) {
 	}
 
 	Every(s.ctx, interval).Do(func() {
-		s.runJobs(s.ctx)
+		s.runJobs()
 	})
 }
 
-func (s *Scheduler) runJobs(ctx context.Context) {
-	group, ctx := errgroup.WithContext(ctx)
+func (s *Scheduler) runJobs() {
+	group, _ := errgroup.WithContext(s.ctx)
 
 	for _, j := range s.jobs {
 		job := j
