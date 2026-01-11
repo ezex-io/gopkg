@@ -16,7 +16,7 @@ func TestEveryNotCanceled(t *testing.T) {
 
 	done := make(chan struct{})
 	count := 0
-	scheduler.Every(ctx, 2*time.Millisecond).Do(func(_ context.Context) {
+	scheduler.Every(ctx, 2*time.Millisecond).Do(func() {
 		count++
 		if count == 3 {
 			close(done)
@@ -38,7 +38,7 @@ func TestEveryCanceled(t *testing.T) {
 	ctx, cancel := context.WithCancel(t.Context())
 
 	called := make(chan struct{})
-	scheduler.Every(ctx, 20*time.Millisecond).Do(func(_ context.Context) {
+	scheduler.Every(ctx, 20*time.Millisecond).Do(func() {
 		close(called)
 	})
 
@@ -67,7 +67,7 @@ func TestEveryRecoversFromPanic(t *testing.T) {
 
 	done := make(chan struct{})
 	count := 0
-	scheduler.Every(ctx, 2*time.Millisecond).Do(func(_ context.Context) {
+	scheduler.Every(ctx, 2*time.Millisecond).Do(func() {
 		count++
 		if count == 1 {
 			panic("boom")

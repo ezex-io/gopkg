@@ -42,8 +42,8 @@ func (s *Scheduler) Start(interval time.Duration, opts ...Option) {
 		opt(s)
 	}
 
-	Every(s.ctx, interval).Do(func(ctx context.Context) {
-		s.runJobs(ctx)
+	Every(s.ctx, interval).Do(func() {
+		s.runJobs(s.ctx)
 	})
 }
 
