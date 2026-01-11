@@ -12,9 +12,8 @@ package pipeline
 
 import (
 	"context"
+	"log"
 	"sync"
-
-	"github.com/pactus-project/pactus/util/logger"
 )
 
 var _ Pipeline[int] = &pipeline[int]{}
@@ -110,8 +109,6 @@ func New[T any](parentCtx context.Context, opts ...Option) Pipeline[T] {
 		ch:     make(chan T, cfg.bufferSize),
 	}
 
-	go pipe.receiveLoop()
-
 	return pipe
 }
 
@@ -130,7 +127,7 @@ func (p *pipeline[T]) Send(data T) {
 	defer p.RUnlock()
 
 	if p.closed {
-		logger.Debug("send on closed channel", "name", p.name)
+		log.Printf("send on closed channel: %s", p.name)
 
 		return
 	}
@@ -140,11 +137,11 @@ func (p *pipeline[T]) Send(data T) {
 		err := p.ctx.Err()
 		switch err {
 		case context.Canceled:
-			logger.Debug("pipeline draining", "name", p.name)
+			log.Printf("pipeline draining: %s", p.name)
 		case context.DeadlineExceeded:
-			logger.Warn("pipeline timeout", "name", p.name)
+			log.Printf("pipeline timeout: %s", p.name)
 		default:
-			logger.Error("pipeline error", "name", p.name, "error", err)
+			log.Printf("pipeline error: %s, error: %v", p.name, err)
 		}
 	case p.ch <- data:
 		// Successful send
@@ -158,6 +155,10 @@ func (p *pipeline[T]) Send(data T) {
 //
 // Note: This method is NOT thread-safe; register receivers before sending.
 func (p *pipeline[T]) RegisterReceiver(receiver func(T)) {
+	if len(p.receivers) == 0 {
+		go p.receiveLoop()
+	}
+
 	p.receivers = append(p.receivers, receiver)
 }
 
@@ -170,7 +171,7 @@ func (p *pipeline[T]) receiveLoop() {
 			return
 		case data, ok := <-p.ch:
 			if !ok {
-				logger.Warn("channel is closed", "name", p.name)
+				log.Printf("channel is closed: %s", p.name)
 
 				return
 			}

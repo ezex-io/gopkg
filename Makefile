@@ -3,8 +3,8 @@ ROOT_DIR := $(shell pwd)
 LINT_CONFIG := $(ROOT_DIR)/.golangci.yml
 
 check:
-	@set -e;
-	@for pkg in $(PACKAGES); do \
+	@set -e; \
+	for pkg in $(PACKAGES); do \
 		echo "Linting $$pkg package..."; \
 		cd $(ROOT_DIR)/$$pkg && golangci-lint run --config $(LINT_CONFIG); \
 	done
