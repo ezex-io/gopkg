@@ -12,9 +12,8 @@ package pipeline
 
 import (
 	"context"
+	"log"
 	"sync"
-
-	"github.com/ezex-io/gopkg/logger"
 )
 
 var _ Pipeline[int] = &pipeline[int]{}
@@ -128,7 +127,7 @@ func (p *pipeline[T]) Send(data T) {
 	defer p.RUnlock()
 
 	if p.closed {
-		logger.Debug("send on closed channel", "name", p.name)
+		log.Printf("send on closed channel: %s", p.name)
 
 		return
 	}
@@ -138,11 +137,11 @@ func (p *pipeline[T]) Send(data T) {
 		err := p.ctx.Err()
 		switch err {
 		case context.Canceled:
-			logger.Debug("pipeline draining", "name", p.name)
+			log.Printf("pipeline draining: %s", p.name)
 		case context.DeadlineExceeded:
-			logger.Warn("pipeline timeout", "name", p.name)
+			log.Printf("pipeline timeout: %s", p.name)
 		default:
-			logger.Error("pipeline error", "name", p.name, "error", err)
+			log.Printf("pipeline error: %s, error: %v", p.name, err)
 		}
 	case p.ch <- data:
 		// Successful send
@@ -172,7 +171,7 @@ func (p *pipeline[T]) receiveLoop() {
 			return
 		case data, ok := <-p.ch:
 			if !ok {
-				logger.Warn("channel is closed", "name", p.name)
+				log.Printf("channel is closed: %s", p.name)
 
 				return
 			}

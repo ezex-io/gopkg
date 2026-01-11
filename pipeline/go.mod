@@ -2,10 +2,7 @@ module github.com/ezex-io/gopkg/pipeline
 
 go 1.25.1
 
-require (
-	github.com/ezex-io/gopkg/logger v0.1.2
-	github.com/stretchr/testify v1.11.1
-)
+require github.com/stretchr/testify v1.11.1
 
 require (
 	github.com/davecgh/go-spew v1.1.1 // indirect
