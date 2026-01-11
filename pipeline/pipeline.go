@@ -14,7 +14,7 @@ import (
 	"context"
 	"sync"
 
-	"github.com/pactus-project/pactus/util/logger"
+	"github.com/ezex-io/gopkg/logger"
 )
 
 var _ Pipeline[int] = &pipeline[int]{}
@@ -110,8 +110,6 @@ func New[T any](parentCtx context.Context, opts ...Option) Pipeline[T] {
 		ch:     make(chan T, cfg.bufferSize),
 	}
 
-	go pipe.receiveLoop()
-
 	return pipe
 }
 
@@ -158,6 +156,10 @@ func (p *pipeline[T]) Send(data T) {
 //
 // Note: This method is NOT thread-safe; register receivers before sending.
 func (p *pipeline[T]) RegisterReceiver(receiver func(T)) {
+	if len(p.receivers) == 0 {
+		go p.receiveLoop()
+	}
+
 	p.receivers = append(p.receivers, receiver)
 }
 
