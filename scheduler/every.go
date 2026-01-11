@@ -19,7 +19,7 @@ func Every(ctx context.Context, duration time.Duration) EveryBuilder {
 
 // Do registers the callback to run repeatedly on the configured interval.
 // The scheduler passes the builder's context to the callback for cancellation-aware work.
-func (b EveryBuilder) Do(callback func(context.Context)) {
+func (b EveryBuilder) Do(callback func()) {
 	go func() {
 		ticker := time.NewTicker(b.duration)
 		defer ticker.Stop()
@@ -39,7 +39,7 @@ func (b EveryBuilder) Do(callback func(context.Context)) {
 							)
 						}
 					}()
-					callback(b.ctx)
+					callback()
 				}()
 			}
 		}

@@ -42,8 +42,8 @@ func (s *Scheduler) Start(interval time.Duration, opts ...Option) {
 		opt(s)
 	}
 
-	Every(s.ctx, interval).Do(func(ctx context.Context) {
-		s.runJobs(ctx)
+	Every(s.ctx, interval).Do(func() {
+		s.runJobs(s.ctx)
 	})
 }
 
@@ -53,7 +53,7 @@ func (s *Scheduler) runJobs(ctx context.Context) {
 	for _, j := range s.jobs {
 		job := j
 		group.Go(func() error {
-			if err := job.Run(ctx); err != nil {
+			if err := job.Run(); err != nil {
 				log.Printf("job failed: %v", err)
 
 				return err
