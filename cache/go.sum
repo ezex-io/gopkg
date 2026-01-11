@@ -1,4 +1,4 @@
-github.com/ezex-io/gopkg/util v1.1.0 h1:m5NxMb3xCINbXbyrwa7+TTqM5FJwhh4uoxpWZ6tvZNw=
-github.com/ezex-io/gopkg/util v1.1.0/go.mod h1:SgL2SetYwXdUsjp2ITccK/7L1ZSgH3oezrtIKmO+ncI=
-github.com/ezex-io/gopkg/util v1.1.1-0.20260110114249-4d5968984cbb h1:EBgEFbsTe6yi2UOrr7rW6p1hAA1RjtsfvhQU8jjwPtc=
-github.com/ezex-io/gopkg/util v1.1.1-0.20260110114249-4d5968984cbb/go.mod h1:L5YNz4Dw+80KRJESOB5ZXi+YkUZuZu82EiXygWNkTK0=
+github.com/ezex-io/gopkg/scheduler v0.0.0-20260111172426-02a2b22bfd26 h1:u8ALaQjbgpsbS2JxmpS6ze0kt4tX0Wns4nBL1sSEqk8=
+github.com/ezex-io/gopkg/scheduler v0.0.0-20260111172426-02a2b22bfd26/go.mod h1:I5PLJTun10b6UvzR2s2oA2++QDsQQbUVVbKQDABLkSI=
+golang.org/x/sync v0.19.0 h1:vV+1eWNmZ5geRlYjzm2adRgW2/mcpevXNg50YZtPCE4=
+golang.org/x/sync v0.19.0/go.mod h1:9KTHXmSnoGruLpwFjVSX0lNNA75CykiMECbovNTZqGI=
