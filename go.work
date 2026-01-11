@@ -8,5 +8,6 @@ use (
 	./scheduler
 	./pipeline
 	./testsuite
+	./retry
 	./util
 )
