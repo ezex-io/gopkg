@@ -54,7 +54,7 @@ type pipeline[T any] struct {
 	receivers []func(T)
 }
 
-const defaultBufferSize = 16
+const defaultBufferSize = 64
 
 type options struct {
 	name       string
@@ -74,9 +74,6 @@ func WithName(name string) Option {
 // WithBufferSize sets the channel buffer size (0 for unbuffered).
 func WithBufferSize(size int) Option {
 	return func(opt *options) {
-		if size < 0 {
-			size = 0
-		}
 		opt.bufferSize = size
 	}
 }
