@@ -124,8 +124,7 @@ func (p *pipeline[T]) Send(data T) {
 	defer p.RUnlock()
 
 	if p.closed {
-		log.Printf("send on closed channel: %s", p.name)
-
+		// send on closed channel
 		return
 	}
 
@@ -134,7 +133,7 @@ func (p *pipeline[T]) Send(data T) {
 		err := p.ctx.Err()
 		switch err {
 		case context.Canceled:
-			log.Printf("pipeline draining: %s", p.name)
+			// pipeline draining
 		case context.DeadlineExceeded:
 			log.Printf("pipeline timeout: %s", p.name)
 		default:
