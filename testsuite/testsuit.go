@@ -128,9 +128,9 @@ func (ts *TestSuite) RandIntNonZero(max int) int {
 	return ts.RandInt(max) + 1
 }
 
-// RandIntRange returns a random int between [min, max).
-func (ts *TestSuite) RandIntRange(min, max int) int {
-	return ts.RandIntNonZero(max-min) + min
+// RandInt64Range returns a random int64 between [min, max).
+func (ts *TestSuite) RandInt64Range(min, max int64) int64 {
+	return ts.RandInt64(max-min) + min
 }
 
 // RandBytes returns a slice of random bytes of the given length.
