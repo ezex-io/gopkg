@@ -11,17 +11,15 @@ import (
 type Scheduler struct {
 	ctx       context.Context
 	jobs      []Job
-	name      string
 	onSuccess func()
 }
 
 type Option func(*Scheduler)
 
-func NewScheduler(ctx context.Context, name string) Scheduler {
+func NewScheduler(ctx context.Context) Scheduler {
 	return Scheduler{
 		ctx:  ctx,
 		jobs: make([]Job, 0),
-		name: name,
 	}
 }
 
