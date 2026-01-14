@@ -23,7 +23,9 @@ func GenerateSeed() int64 {
 }
 
 // NewTestSuiteFromSeed creates a new TestSuite with the given seed.
-func NewTestSuiteFromSeed(seed int64) *TestSuite {
+func NewTestSuiteFromSeed(t *testing.T, seed int64) *TestSuite {
+	t.Helper()
+
 	return &TestSuite{
 		Seed: seed,
 		//nolint:gosec // to reproduce the failed tests
@@ -38,11 +40,7 @@ func NewTestSuite(t *testing.T) *TestSuite {
 	seed := GenerateSeed()
 	t.Logf("%v seed is %v", t.Name(), seed)
 
-	return &TestSuite{
-		Seed: seed,
-		//nolint:gosec // to reproduce the failed tests
-		Rand: rand.New(rand.NewSource(seed)),
-	}
+	return NewTestSuiteFromSeed(t, seed)
 }
 
 // RandBool returns a random boolean value.
@@ -128,6 +126,11 @@ func (ts *TestSuite) RandUint64NonZero(max uint64) uint64 {
 // RandIntNonZero returns a random int between 1 and max+1: [1, max+1).
 func (ts *TestSuite) RandIntNonZero(max int) int {
 	return ts.RandInt(max) + 1
+}
+
+// RandIntRange returns a random int between [min, max).
+func (ts *TestSuite) RandIntRange(min, max int) int {
+	return ts.RandIntNonZero(max-min) + min
 }
 
 // RandBytes returns a slice of random bytes of the given length.
