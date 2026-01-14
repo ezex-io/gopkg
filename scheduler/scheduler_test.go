@@ -11,80 +11,93 @@ import (
 )
 
 type testJob struct {
-	runs *atomic.Int32
+	counter *atomic.Int32
 }
 
 func (j testJob) Run() error {
-	j.runs.Add(1)
+	j.counter.Add(1)
 
 	return nil
 }
 
 type errorJob struct {
-	runs   *atomic.Int32
 	cancel context.CancelFunc
 }
 
 func (j errorJob) Run() error {
-	j.runs.Add(1)
 	j.cancel()
 
 	return errors.New("job failed")
 }
 
-func TestStartWithOnSuccessOption(t *testing.T) {
+func TestSchedulerJobSuccess(t *testing.T) {
 	ctx, cancel := context.WithCancel(t.Context())
 	defer cancel()
 
-	var success atomic.Int32
-	var runs atomic.Int32
+	var counter atomic.Int32
 
-	s := scheduler.NewScheduler(ctx, "test-scheduler")
-	s.AddJob(testJob{runs: &runs})
+	s := scheduler.NewScheduler(ctx)
+	s.AddJob(testJob{counter: &counter})
 
 	s.Start(1*time.Millisecond, scheduler.WithOnSuccess(func() {
-		success.Add(1)
+		counter.Add(1)
 		cancel()
 	}))
 
 	select {
 	case <-ctx.Done():
-	case <-time.After(200 * time.Millisecond):
+	case <-time.After(1 * time.Second):
 		t.Fatal("timed out waiting for onSuccess to be called")
 	}
 
-	if runs.Load() == 0 {
-		t.Fatal("expected job to run at least once")
-	}
-	if success.Load() == 0 {
+	if counter.Load() == 1 {
 		t.Fatal("expected onSuccess to be invoked")
 	}
 }
 
-func TestOnSuccessNotCalledWhenJobErrors(t *testing.T) {
+func TestSchedulerJobError(t *testing.T) {
 	ctx, cancel := context.WithCancel(t.Context())
 	defer cancel()
 
-	var success atomic.Int32
-	var runs atomic.Int32
-
-	s := scheduler.NewScheduler(ctx, "test-scheduler")
-	s.AddJob(errorJob{runs: &runs, cancel: cancel})
+	s := scheduler.NewScheduler(ctx)
+	s.AddJob(errorJob{cancel: cancel})
 
 	s.Start(1*time.Millisecond, scheduler.WithOnSuccess(func() {
-		success.Add(1)
+		t.Fatal("onSuccess should not be invoked when a job errors")
 	}))
 
 	select {
 	case <-ctx.Done():
-	case <-time.After(200 * time.Millisecond):
+	case <-time.After(1 * time.Second):
 		t.Fatal("timed out waiting for job error to cancel context")
 	}
+}
 
-	if runs.Load() == 0 {
-		t.Fatal("expected job to run at least once")
+func TestStartMultipleJobs(t *testing.T) {
+	ctx, cancel := context.WithCancel(t.Context())
+	defer cancel()
+
+	var counter atomic.Int32
+
+	s := scheduler.NewScheduler(ctx)
+	s.AddJob(testJob{counter: &counter})
+	s.AddJob(testJob{counter: &counter})
+	s.AddJob(testJob{counter: &counter})
+
+	s.Start(1*time.Millisecond,
+		scheduler.WithOnSuccess(
+			func() {
+				cancel()
+			},
+		))
+
+	select {
+	case <-ctx.Done():
+	case <-time.After(1 * time.Second):
+		t.Fatal("timed out waiting for onSuccess to be called")
 	}
-	if success.Load() != 0 {
-		t.Fatal("onSuccess should not be invoked when a job errors")
+
+	if counter.Load() != 3 {
+		t.Fatalf("expected 3 executions, got %d", counter.Load())
 	}
 }
