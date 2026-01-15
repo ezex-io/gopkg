@@ -3,11 +3,12 @@ go 1.25.1
 use (
 	./cache
 	./env
+	./evm
 	./logger
 	./middleware/http-mdl
-	./scheduler
 	./pipeline
-	./testsuite
 	./retry
+	./scheduler
+	./testsuite
 	./util
 )
