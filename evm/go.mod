@@ -1,4 +1,4 @@
-module github.com/ezex-io/go-libx/evm
+module github.com/ezex-io/gopkg/evm
 
 go 1.25.1
 
