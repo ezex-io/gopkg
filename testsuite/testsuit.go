@@ -6,6 +6,7 @@ import (
 	"slices"
 	"testing"
 	"time"
+	"unsafe"
 )
 
 // TestSuite provides a set of helper functions for testing purposes.
@@ -43,94 +44,123 @@ func NewTestSuite(t *testing.T) *TestSuite {
 	return NewTestSuiteFromSeed(t, seed)
 }
 
+// Integer is a constraint that matches any integer type.
+type Integer interface {
+	~int | ~int8 | ~int16 | ~int32 | ~int64 | ~uint | ~uint8 | ~uint16 | ~uint32 | ~uint64
+}
+
+// RandOptions holds configuration for random number generation.
+type RandOptions[T Integer] struct {
+	Min T // minimum value (inclusive)
+	Max T // maximum value (exclusive)
+}
+
+// defaultRandOptions returns default options for any integer type.
+func defaultRandOptions[T Integer]() RandOptions[T] {
+	var zero T
+	var max T
+
+	// Detect signed vs unsigned by comparison
+	if zero-1 < zero {
+		// signed
+		bits := uint(unsafe.Sizeof(zero)) * 8
+		max = T(1<<(bits-1) - 1)
+	} else {
+		// unsigned
+		max = ^T(0)
+	}
+
+	return RandOptions[T]{
+		Min: zero, // 0 for all types
+		Max: max,  // safe default max value for type
+	}
+}
+
+// RandOption is a functional option for configuring random generation.
+type RandOption[T Integer] func(*RandOptions[T])
+
+// WithMin sets the minimum value.
+func WithMin[T Integer](min T) RandOption[T] {
+	return func(opts *RandOptions[T]) {
+		opts.Min = min
+	}
+}
+
+// WithMax sets the maximum value.
+func WithMax[T Integer](max T) RandOption[T] {
+	return func(opts *RandOptions[T]) {
+		opts.Max = max
+	}
+}
+
+// randInt generates a random integer of type T with the given options.
+func randInt[T Integer](suite *TestSuite,
+	defaultRandOptions func() RandOptions[T], opts ...RandOption[T],
+) T {
+	cfg := defaultRandOptions()
+	for _, opt := range opts {
+		opt(&cfg)
+	}
+
+	min := int64(cfg.Min)
+	max := int64(cfg.Max)
+
+	return T(suite.Rand.Int63n(max-min) + min)
+}
+
 // RandBool returns a random boolean value.
 func (ts *TestSuite) RandBool() bool {
-	return ts.RandInt64(2) == 0
+	return ts.RandInt(WithMax(2)) == 0
 }
 
-// RandInt8 returns a random int8 between 0 and max: [0, max).
-func (ts *TestSuite) RandInt8(max int8) int8 {
-	return int8(ts.RandUint64(uint64(max)))
+// RandInt8 returns a random int8 with optional configuration.
+func (ts *TestSuite) RandInt8(opts ...RandOption[int8]) int8 {
+	return randInt(ts, defaultRandOptions[int8], opts...)
 }
 
-// RandUint8 returns a random uint8 between 0 and max: [0, max).
-func (ts *TestSuite) RandUint8(max uint8) uint8 {
-	return uint8(ts.RandUint64(uint64(max)))
+// RandUint8 returns a random uint8 with optional configuration.
+func (ts *TestSuite) RandUint8(opts ...RandOption[uint8]) uint8 {
+	return randInt(ts, defaultRandOptions[uint8], opts...)
 }
 
-// RandInt16 returns a random int16 between 0 and max: [0, max).
-func (ts *TestSuite) RandInt16(max int16) int16 {
-	return int16(ts.RandUint64(uint64(max)))
+// RandInt16 returns a random int16 with optional configuration.
+func (ts *TestSuite) RandInt16(opts ...RandOption[int16]) int16 {
+	return randInt(ts, defaultRandOptions[int16], opts...)
 }
 
-// RandUint16 returns a random uint16 between 0 and max: [0, max).
-func (ts *TestSuite) RandUint16(max uint16) uint16 {
-	return uint16(ts.RandUint64(uint64(max)))
+// RandUint16 returns a random uint16 with optional configuration.
+func (ts *TestSuite) RandUint16(opts ...RandOption[uint16]) uint16 {
+	return randInt(ts, defaultRandOptions[uint16], opts...)
 }
 
-// RandInt32 returns a random int32 between 0 and max: [0, max).
-func (ts *TestSuite) RandInt32(max int32) int32 {
-	return int32(ts.RandUint64(uint64(max)))
+// RandInt32 returns a random int32 with optional configuration.
+func (ts *TestSuite) RandInt32(opts ...RandOption[int32]) int32 {
+	return randInt(ts, defaultRandOptions[int32], opts...)
 }
 
-// RandUint32 returns a random uint32 between 0 and max: [0, max).
-func (ts *TestSuite) RandUint32(max uint32) uint32 {
-	return uint32(ts.RandUint64(uint64(max)))
+// RandUint32 returns a random uint32 with optional configuration.
+func (ts *TestSuite) RandUint32(opts ...RandOption[uint32]) uint32 {
+	return randInt(ts, defaultRandOptions[uint32], opts...)
 }
 
-// RandInt64 returns a random int64 between 0 and max: [0, max).
-func (ts *TestSuite) RandInt64(max int64) int64 {
-	return ts.Rand.Int63n(max)
+// RandInt64 returns a random int64 with optional configuration.
+func (ts *TestSuite) RandInt64(opts ...RandOption[int64]) int64 {
+	return randInt(ts, defaultRandOptions[int64], opts...)
 }
 
-// RandUint64 returns a random uint64 between 0 and max: [0, max).
-func (ts *TestSuite) RandUint64(max uint64) uint64 {
-	return uint64(ts.RandInt64(int64(max)))
+// RandUint64 returns a random uint64 with optional configuration.
+func (ts *TestSuite) RandUint64(opts ...RandOption[uint64]) uint64 {
+	return randInt(ts, defaultRandOptions[uint64], opts...)
 }
 
-// RandInt returns a random int between 0 and max: [0, max).
-func (ts *TestSuite) RandInt(max int) int {
-	return int(ts.RandInt64(int64(max)))
+// RandInt returns a random int with optional configuration.
+func (ts *TestSuite) RandInt(opts ...RandOption[int]) int {
+	return randInt(ts, defaultRandOptions[int], opts...)
 }
 
-// RandInt16NonZero returns a random int16 between 1 and max+1: [1, max+1).
-func (ts *TestSuite) RandInt16NonZero(max int16) int16 {
-	return ts.RandInt16(max) + 1
-}
-
-// RandUint16NonZero returns a random uint16 between 1 and max+1: [1, max+1).
-func (ts *TestSuite) RandUint16NonZero(max uint16) uint16 {
-	return ts.RandUint16(max) + 1
-}
-
-// RandInt32NonZero returns a random int32 between 1 and max+1: [1, max+1).
-func (ts *TestSuite) RandInt32NonZero(max int32) int32 {
-	return ts.RandInt32(max) + 1
-}
-
-// RandUint32NonZero returns a random uint32 between 1 and max+1: [1, max+1).
-func (ts *TestSuite) RandUint32NonZero(max uint32) uint32 {
-	return ts.RandUint32(max) + 1
-}
-
-// RandInt64NonZero returns a random int64 between 1 and max+1: [1, max+1).
-func (ts *TestSuite) RandInt64NonZero(max int64) int64 {
-	return ts.RandInt64(max) + 1
-}
-
-// RandUint64NonZero returns a random uint64 between 1 and max+1: [1, max+1).
-func (ts *TestSuite) RandUint64NonZero(max uint64) uint64 {
-	return ts.RandUint64(max) + 1
-}
-
-// RandIntNonZero returns a random int between 1 and max+1: [1, max+1).
-func (ts *TestSuite) RandIntNonZero(max int) int {
-	return ts.RandInt(max) + 1
-}
-
-// RandInt64Range returns a random int64 between [min, max).
-func (ts *TestSuite) RandInt64Range(min, max int64) int64 {
-	return ts.RandInt64(max-min) + min
+// RandUint returns a random uint with optional configuration.
+func (ts *TestSuite) RandUint(opts ...RandOption[uint]) uint {
+	return randInt(ts, defaultRandOptions[uint], opts...)
 }
 
 // RandBytes returns a slice of random bytes of the given length.
@@ -148,7 +178,7 @@ func (ts *TestSuite) RandBytes(length int) []byte {
 func (ts *TestSuite) RandSlice(length int) []int32 {
 	slice := []int32{}
 	for {
-		randInt := ts.RandInt32(1000)
+		randInt := ts.RandInt32()
 		if !slices.Contains(slice, randInt) {
 			slice = append(slice, randInt)
 		}
@@ -165,7 +195,7 @@ func (ts *TestSuite) RandString(length int) string {
 
 	b := make([]byte, length)
 	for i := range b {
-		b[i] = letterBytes[ts.RandInt(52)]
+		b[i] = letterBytes[ts.RandInt(WithMax(52))]
 	}
 
 	return string(b)
