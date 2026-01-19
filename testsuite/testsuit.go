@@ -189,16 +189,49 @@ func (ts *TestSuite) RandSlice(length int) []int32 {
 	}
 }
 
-// RandString generates a random string of the given length.
-func (ts *TestSuite) RandString(length int) string {
-	const letterBytes = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ"
+// Predefined charsets.
+const (
+	CharsetAlphabet     = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ"
+	CharsetAlphanumeric = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"
+	CharsetHex          = "0123456789abcdef"
+)
 
+type randStringConfig struct {
+	charset string
+}
+
+type RandStringOption func(*randStringConfig)
+
+func WithCharset(charset string) RandStringOption {
+	return func(c *randStringConfig) {
+		if charset != "" {
+			c.charset = charset
+		}
+	}
+}
+
+// RandString generates a random string of the given length.
+func (ts *TestSuite) RandString(length int, opts ...RandStringOption) string {
+	cfg := randStringConfig{
+		charset: CharsetAlphabet, // default
+	}
+
+	for _, opt := range opts {
+		opt(&cfg)
+	}
+
+	max := len(cfg.charset)
 	b := make([]byte, length)
 	for i := range b {
-		b[i] = letterBytes[ts.RandInt(WithMax(52))]
+		b[i] = cfg.charset[ts.RandInt(WithMax(max))]
 	}
 
 	return string(b)
+}
+
+// RandHash32 generates a random 32-character hexadecimal string.
+func (ts *TestSuite) RandHash32() string {
+	return ts.RandString(32, WithCharset(CharsetHex))
 }
 
 // DecodingHex decodes the input string from hexadecimal format and returns the resulting byte slice.
