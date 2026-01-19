@@ -7,17 +7,60 @@ import (
 	"github.com/ethereum/go-ethereum"
 	"github.com/ethereum/go-ethereum/accounts/abi"
 	"github.com/ethereum/go-ethereum/common"
+	"github.com/ethereum/go-ethereum/core/types"
 )
+
+const basefeeWiggleMultiplier = 2
+
+type ContractGasEstimator interface {
+	ethereum.GasEstimator
+	ethereum.GasPricer
+	ethereum.GasPricer1559
+
+	// HeaderByNumber returns a block header from the current canonical chain. If
+	// number is nil, the latest known header is returned.
+	HeaderByNumber(ctx context.Context, number *big.Int) (*types.Header, error)
+}
+
+type GasInfo struct {
+	EstimatedGasLimit uint64
+	BaseFee           *big.Int // baseFeePerGas
+	PriorityFee       *big.Int // maxPriorityFeePerGas
+}
+
+// EffectiveGasPrice returns the actual price per gas that will be paid
+// assuming maxFeePerGas is sufficiently high.
+func (g *GasInfo) EffectiveGasPrice() *big.Int {
+	return new(big.Int).Add(g.BaseFee, g.PriorityFee)
+}
+
+// MaxFeePerGas returns a safe maxFeePerGas value with headroom
+// to tolerate short-term base fee increases.
+func (g *GasInfo) MaxFeePerGas() *big.Int {
+	return new(big.Int).Add(
+		g.PriorityFee,
+		new(big.Int).Mul(g.BaseFee, big.NewInt(basefeeWiggleMultiplier)),
+	)
+}
+
+// EstimateGasCost estimates the total transaction cost using the
+// effective gas price (not the max fee).
+func (g *GasInfo) EstimateGasCost() *big.Int {
+	return new(big.Int).Mul(
+		new(big.Int).SetUint64(g.EstimatedGasLimit),
+		g.EffectiveGasPrice(),
+	)
+}
 
 // GasEstimator provides gas estimation functionality for EVM contract calls.
 type GasEstimator struct {
-	client       Client         // Ethereum client for blockchain interaction
-	contractAddr common.Address // Address of the smart contract
-	abi          *abi.ABI       // Contract ABI for encoding function calls
+	client       ContractGasEstimator
+	contractAddr common.Address
+	abi          *abi.ABI
 }
 
 // NewGasEstimator creates a new EVM gas estimator.
-func NewGasEstimator(client Client, contractAddr common.Address, abi *abi.ABI) *GasEstimator {
+func NewGasEstimator(client ContractGasEstimator, contractAddr common.Address, abi *abi.ABI) *GasEstimator {
 	return &GasEstimator{
 		client:       client,
 		contractAddr: contractAddr,
@@ -25,44 +68,59 @@ func NewGasEstimator(client Client, contractAddr common.Address, abi *abi.ABI) *
 	}
 }
 
-// EstimateGasLimit estimates the gas limit required for a function call.
-func (e *GasEstimator) EstimateGasLimit(ctx context.Context, method string, args ...any) (uint64, error) {
-	// Pack the function call data
+// EstimateGasParams estimates the gas parameters for a contract method call.
+// It has 3 RPC calls:
+// 1. eth_estimateGas
+// 2. eth_maxPriorityFeePerGas
+// 3. eth_getBlockByNumber.
+func (e *GasEstimator) EstimateGasParams(
+	ctx context.Context,
+	method string,
+	from common.Address,
+	args ...any,
+) (*GasInfo, error) {
+	// ABI-encode the contract method call and its arguments.
 	data, err := e.abi.Pack(method, args...)
 	if err != nil {
-		return 0, err
+		return nil, err
 	}
 
-	// Create the call message for gas estimation
+	// Construct a call message for gas estimation.
+	// This simulates a transaction sent from `from` to the contract
+	// without broadcasting it to the network.
 	msg := ethereum.CallMsg{
-		To:   &e.contractAddr, // Use contract address
+		To:   &e.contractAddr,
+		From: from,
 		Data: data,
 	}
 
+	// Ask the client to estimate the gas required for the simulated call.
 	gasLimit, err := e.client.EstimateGas(ctx, msg)
 	if err != nil {
-		return 0, err
+		return nil, err
 	}
 
-	return gasLimit, nil
+	priorityFee, err := e.client.SuggestGasTipCap(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	head, err := e.client.HeaderByNumber(ctx, nil)
+	if err != nil {
+		return nil, err
+	}
+
+	return &GasInfo{
+		EstimatedGasLimit: gasLimit,
+		BaseFee:           head.BaseFee,
+		PriorityFee:       priorityFee,
+	}, nil
 }
 
-// EstimateGasCost estimates the total gas cost in wei for a function call.
-func (e *GasEstimator) EstimateGasCost(ctx context.Context, method string, args ...any) (*big.Int, error) {
-	// Get gas limit
-	gasLimit, err := e.EstimateGasLimit(ctx, method, args...)
-	if err != nil {
-		return big.NewInt(0), err
-	}
-
-	// Get current gas price
-	gasPrice, err := e.client.SuggestGasPrice(ctx)
-	if err != nil {
-		return big.NewInt(0), err
-	}
-
-	// Calculate total cost: gasLimit * gasPrice
-	totalCost := new(big.Int).Mul(big.NewInt(int64(gasLimit)), gasPrice)
-
-	return totalCost, nil
+// SuggestGasPrice returns the node's suggested gas price for legacy (pre-EIP-1559)
+// transactions, intended to achieve timely inclusion in a block.
+//
+// This is backed by the `eth_gasPrice` RPC call.
+func (e *GasEstimator) SuggestGasPrice(ctx context.Context) (*big.Int, error) {
+	return e.client.SuggestGasPrice(ctx)
 }
