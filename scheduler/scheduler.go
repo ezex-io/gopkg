@@ -9,16 +9,14 @@ import (
 )
 
 type Scheduler struct {
-	ctx       context.Context
 	jobs      []Job
 	onSuccess func()
 }
 
 type Option func(*Scheduler)
 
-func NewScheduler(ctx context.Context) Scheduler {
+func NewScheduler() Scheduler {
 	return Scheduler{
-		ctx:  ctx,
 		jobs: make([]Job, 0),
 	}
 }
@@ -35,23 +33,23 @@ func (s *Scheduler) AddJob(job Job) {
 }
 
 // Start starts the scheduler and runs the jobs on the given interval.
-func (s *Scheduler) Start(interval time.Duration, opts ...Option) {
+func (s *Scheduler) Start(ctx context.Context, interval time.Duration, opts ...Option) {
 	for _, opt := range opts {
 		opt(s)
 	}
 
-	Every(s.ctx, interval).Do(func() {
-		s.runJobs()
+	Every(interval).Do(ctx, func(ctx context.Context) {
+		s.runJobs(ctx)
 	})
 }
 
-func (s *Scheduler) runJobs() {
-	group, _ := errgroup.WithContext(s.ctx)
+func (s *Scheduler) runJobs(ctx context.Context) {
+	group, _ := errgroup.WithContext(ctx)
 
 	for _, j := range s.jobs {
 		job := j
 		group.Go(func() error {
-			if err := job.Run(); err != nil {
+			if err := job.Run(ctx); err != nil {
 				log.Printf("job failed: %v", err)
 
 				return err

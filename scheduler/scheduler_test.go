@@ -14,7 +14,7 @@ type testJob struct {
 	counter *atomic.Int32
 }
 
-func (j testJob) Run() error {
+func (j testJob) Run(context.Context) error {
 	j.counter.Add(1)
 
 	return nil
@@ -24,7 +24,7 @@ type errorJob struct {
 	cancel context.CancelFunc
 }
 
-func (j errorJob) Run() error {
+func (j errorJob) Run(context.Context) error {
 	j.cancel()
 
 	return errors.New("job failed")
@@ -36,10 +36,10 @@ func TestSchedulerJobSuccess(t *testing.T) {
 
 	var counter atomic.Int32
 
-	s := scheduler.NewScheduler(ctx)
+	s := scheduler.NewScheduler()
 	s.AddJob(testJob{counter: &counter})
 
-	s.Start(1*time.Millisecond, scheduler.WithOnSuccess(func() {
+	s.Start(ctx, 1*time.Millisecond, scheduler.WithOnSuccess(func() {
 		counter.Add(1)
 		cancel()
 	}))
@@ -59,10 +59,10 @@ func TestSchedulerJobError(t *testing.T) {
 	ctx, cancel := context.WithCancel(t.Context())
 	defer cancel()
 
-	s := scheduler.NewScheduler(ctx)
+	s := scheduler.NewScheduler()
 	s.AddJob(errorJob{cancel: cancel})
 
-	s.Start(1*time.Millisecond, scheduler.WithOnSuccess(func() {
+	s.Start(ctx, 1*time.Millisecond, scheduler.WithOnSuccess(func() {
 		t.Fatal("onSuccess should not be invoked when a job errors")
 	}))
 
@@ -79,12 +79,12 @@ func TestStartMultipleJobs(t *testing.T) {
 
 	var counter atomic.Int32
 
-	s := scheduler.NewScheduler(ctx)
+	s := scheduler.NewScheduler()
 	s.AddJob(testJob{counter: &counter})
 	s.AddJob(testJob{counter: &counter})
 	s.AddJob(testJob{counter: &counter})
 
-	s.Start(1*time.Millisecond,
+	s.Start(ctx, 1*time.Millisecond,
 		scheduler.WithOnSuccess(
 			func() {
 				cancel()

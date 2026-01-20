@@ -13,7 +13,7 @@ func TestAfterNotCanceled(t *testing.T) {
 	t.Cleanup(cancel)
 
 	done := make(chan struct{})
-	scheduler.After(ctx, 5*time.Millisecond).Do(func() {
+	scheduler.After(5*time.Millisecond).Do(ctx, func(context.Context) {
 		close(done)
 	})
 
@@ -28,7 +28,7 @@ func TestAfterCanceled(t *testing.T) {
 	ctx, cancel := context.WithCancel(t.Context())
 
 	called := make(chan struct{})
-	scheduler.After(ctx, 20*time.Millisecond).Do(func() {
+	scheduler.After(20*time.Millisecond).Do(ctx, func(context.Context) {
 		close(called)
 	})
 
