@@ -1,5 +1,7 @@
 package scheduler
 
+import "context"
+
 type Job interface {
-	Run() error
+	Run(ctx context.Context) error
 }

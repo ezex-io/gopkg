@@ -27,7 +27,7 @@ func NewBasic[K any, V any](ctx context.Context, opts ...Option) Cache[K, V] {
 		cache: sync.Map{},
 	}
 
-	scheduler.Every(ctx, cfg.cleanUpInterval).Do(func() {
+	scheduler.Every(cfg.cleanUpInterval).Do(ctx, func(context.Context) {
 		cache.cleanupExpiredEntries()
 	})
 
