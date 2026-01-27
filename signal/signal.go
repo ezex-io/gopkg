@@ -24,7 +24,7 @@ func HandleInterrupt(callback func()) {
 			exitCode += int(syscall.SIGTERM)
 		}
 
-		os.Exit(exitCode)
+		os.Exit(exitCode) //nolint:revive // exit is appropriate here
 	}, syscall.SIGINT, syscall.SIGTERM)
 }
 
