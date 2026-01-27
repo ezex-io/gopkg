@@ -9,6 +9,7 @@ use (
 	./pipeline
 	./retry
 	./scheduler
+	./signal
 	./testsuite
 	./util
 )
